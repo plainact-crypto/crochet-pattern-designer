@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
 <title>Crochet Pattern Designer</title>
 <link rel="stylesheet" href="styles.css" />
 </head>
@@ -57,14 +57,20 @@
     <div class="canvas-header">
       <span id="rowStatus">Row 1 · 0 stitches</span>
       <span class="canvas-title">WHITEBOARD</span>
-      <span id="selectedStatus">Place rotation 0°</span>
+      <div class="zoom-tools" aria-label="Zoom controls">
+        <button id="zoomOutBtn" class="zoom-btn" aria-label="Zoom out">−</button>
+        <button id="zoomResetBtn" class="zoom-level" aria-label="Reset zoom">100%</button>
+        <button id="zoomInBtn" class="zoom-btn" aria-label="Zoom in">+</button>
+      </div>
+      <span id="selectedStatus">Rotation 0°</span>
     </div>
 
-    <div class="board-wrap">
+    <div id="boardWrap" class="board-wrap">
       <div id="board" class="board" aria-label="Crochet pattern whiteboard">
         <div id="emptyHint" class="empty-hint">
           <strong>Start drawing</strong>
           <span>Choose a stitch and press PLACE</span>
+          <small>Pinch with two fingers or use + / − to zoom</small>
         </div>
       </div>
     </div>
