@@ -8,32 +8,51 @@
 </head>
 <body>
 <div class="app">
-<aside class="sidebar">
-  <div class="brand"><div class="logo">⌁</div><div><h1>Crochet Pattern Designer</h1><p>Draw the chart before you crochet it.</p></div></div>
-  <div class="section-title">Stitches</div>
-  <div class="stitches" id="stitches"></div>
-  <div class="section-title">Board</div>
-  <div class="toggle"><button id="whiteBtn" class="active">White</button><button id="blackBtn">Black</button></div>
-  <div class="section-title">Symbol size</div>
-  <input id="size" class="range" type="range" min="22" max="76" value="42" />
-  <div class="section-title">Actions</div>
-  <div class="controls">
-    <button class="ctl" id="undo">Undo</button><button class="ctl" id="redo">Redo</button>
-    <button class="ctl" id="rotateL">↶ Rotate</button><button class="ctl" id="rotateR">↷ Rotate</button>
-    <button class="ctl" id="duplicate">Duplicate</button><button class="ctl danger" id="delete">Delete</button>
-    <button class="ctl full" id="clear">Clear board</button>
-  </div>
-  <div class="section-title">How it works</div>
-  <div class="legend">1. Choose a stitch.<br>2. Tap anywhere on the board.<br>3. Tap a symbol to select it.<br>4. Drag to reposition; rotate or duplicate as needed.</div>
-</aside>
-<main class="main">
-  <div class="topbar">
-    <div class="title-wrap"><input id="projectName" value="Untitled Pattern" /><div class="subtitle">Interactive crochet chart workspace</div></div>
-    <div class="toolbar"><button class="ctl" id="save">Save</button><button class="ctl" id="load">Load</button><button class="ctl primary" id="export">Export SVG</button></div>
-  </div>
-  <div class="canvas-wrap"><div class="board-shell"><div id="board" class="board"><div class="hint" id="hint"><b>Choose a stitch</b><br>then tap the board to place it</div></div></div></div>
-  <div class="status"><span id="status">0 stitches</span><span id="selectedStatus">Nothing selected</span></div>
-</main>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">⌁</div>
+      <div>
+        <h1>Crochet Pattern Designer</h1>
+        <p>Build your chart row by row.</p>
+      </div>
+    </div>
+
+    <div class="editor-controls">
+      <label class="field">
+        <span>Stitch</span>
+        <select id="stitchSelect"></select>
+      </label>
+
+      <label class="field compact">
+        <span>Direction</span>
+        <select id="directionSelect">
+          <option value="ltr">Left → Right</option>
+          <option value="rtl">Right → Left</option>
+        </select>
+      </label>
+
+      <button id="placeBtn" class="btn primary">Place</button>
+      <button id="newRowBtn" class="btn">Next Row</button>
+      <button id="rotateBtn" class="btn">Rotate 0°</button>
+      <button id="deleteBtn" class="btn danger">Delete</button>
+      <button id="undoBtn" class="btn">Undo</button>
+      <button id="clearBtn" class="btn">Clear Board</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <div class="board-wrap">
+      <div id="board" class="board" aria-label="Crochet pattern whiteboard">
+        <div id="emptyHint" class="empty-hint">
+          Choose a stitch, then press <b>Place</b>.<br />The pattern will build itself row by row.
+        </div>
+      </div>
+    </div>
+    <div class="footer-bar">
+      <span id="rowStatus">Row 1 · 0 stitches</span>
+      <span id="selectedStatus">Nothing selected</span>
+    </div>
+  </main>
 </div>
 <script src="app.js"></script>
 </body>
