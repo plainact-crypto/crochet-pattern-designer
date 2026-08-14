@@ -8,49 +8,65 @@
 </head>
 <body>
 <div class="app">
-  <header class="topbar">
-    <div class="brand">
+  <header class="cadbar">
+    <div class="brandmark">
       <div class="logo">⌁</div>
-      <div>
-        <h1>Crochet Pattern Designer</h1>
-        <p>Build your chart row by row.</p>
+      <div class="brandcopy">
+        <strong>Crochet CAD</strong>
+        <span>Pattern Designer</span>
       </div>
     </div>
 
-    <div class="editor-controls">
-      <label class="field">
-        <span>Stitch</span>
-        <select id="stitchSelect"></select>
-      </label>
+    <div class="toolbar-group stitch-group">
+      <span class="tool-label">STITCH</span>
+      <select id="stitchSelect" aria-label="Choose stitch">
+        <option value="chain">Chain (ch)</option>
+        <option value="slip">Slip Stitch (sl st)</option>
+        <option value="single">Single Crochet (sc)</option>
+        <option value="half">Half Double Crochet (hdc)</option>
+        <option value="double">Double Crochet (dc)</option>
+        <option value="treble">Treble Crochet (tr)</option>
+        <option value="dtr">Double Treble Crochet (dtr)</option>
+        <option value="picot">Picot</option>
+        <option value="puff">Puff Stitch</option>
+        <option value="cluster">Cluster</option>
+        <option value="shell">Shell</option>
+        <option value="ring">Magic Ring</option>
+      </select>
+    </div>
 
-      <label class="field compact">
-        <span>Direction</span>
-        <select id="directionSelect">
-          <option value="ltr">Left → Right</option>
-          <option value="rtl">Right → Left</option>
-        </select>
-      </label>
+    <div class="toolbar-group direction-group">
+      <span class="tool-label">FLOW</span>
+      <select id="directionSelect" aria-label="Row direction">
+        <option value="ltr">Left → Right</option>
+        <option value="rtl">Right → Left</option>
+      </select>
+    </div>
 
-      <button id="placeBtn" class="btn primary">Place</button>
-      <button id="newRowBtn" class="btn">Next Row</button>
-      <button id="rotateBtn" class="btn">Rotate 0°</button>
-      <button id="deleteBtn" class="btn danger">Delete</button>
-      <button id="undoBtn" class="btn">Undo</button>
-      <button id="clearBtn" class="btn">Clear Board</button>
+    <div class="toolbar-actions">
+      <button id="placeBtn" class="tool-btn primary">Place</button>
+      <button id="rotateBtn" class="tool-btn">Rotate</button>
+      <button id="deleteBtn" class="tool-btn danger">Delete</button>
+      <button id="undoBtn" class="tool-btn">Undo</button>
+      <button id="clearBtn" class="tool-btn">Clear Board</button>
+      <button id="newRowBtn" class="tool-btn accent">New Row</button>
     </div>
   </header>
 
   <main class="workspace">
+    <div class="canvas-header">
+      <span id="rowStatus">Row 1 · 0 stitches</span>
+      <span class="canvas-title">WHITEBOARD</span>
+      <span id="selectedStatus">Place rotation 0°</span>
+    </div>
+
     <div class="board-wrap">
       <div id="board" class="board" aria-label="Crochet pattern whiteboard">
         <div id="emptyHint" class="empty-hint">
-          Choose a stitch, then press <b>Place</b>.<br />The pattern will build itself row by row.
+          <strong>Start drawing</strong>
+          <span>Choose a stitch and press PLACE</span>
         </div>
       </div>
-    </div>
-    <div class="footer-bar">
-      <span id="rowStatus">Row 1 · 0 stitches</span>
-      <span id="selectedStatus">Nothing selected</span>
     </div>
   </main>
 </div>
