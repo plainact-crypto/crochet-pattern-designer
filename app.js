@@ -1,5 +1,5 @@
 const defs=[
-['chain','Chain','ch'],['slip','Slip Stitch','sl st'],['single','Single Crochet','sc'],['half','Half Double','hdc'],['double','Double Crochet','dc'],['treble','Treble Crochet','tr'],['dtr','Double Treble','dtr'],['picot','Picot','picot'],['puff','Puff Stitch','puff'],['cluster','Cluster','cl'],['shell','Shell','shell'],['ring','Magic Ring','MR']
+['chain','Chain','ch'],['slip','Slip Stitch','sl st'],['single','Single Crochet','sc'],['half','Half Double Crochet','hdc'],['double','Double Crochet','dc'],['treble','Treble Crochet','tr'],['dtr','Double Treble Crochet','dtr'],['picot','Picot','picot'],['puff','Puff Stitch','puff'],['cluster','Cluster','cl'],['shell','Shell','shell'],['ring','Magic Ring','MR']
 ].map(([id,name,abbr])=>({id,name,abbr}));
 
 const board=document.getElementById('board');
@@ -26,13 +26,6 @@ let history=[];
 let currentRow=0;
 let currentCol=0;
 let placementRotation=0;
-
-for(const d of defs){
-  const o=document.createElement('option');
-  o.value=d.id;
-  o.textContent=`${d.name} (${d.abbr})`;
-  stitchSelect.appendChild(o);
-}
 
 function line(a,b,c,d){return `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}"/>`}
 function svgFor(type,size,color='#171717'){
@@ -66,21 +59,19 @@ function yFor(row){return TOP_PAD+(row*ROW_HEIGHT)}
 
 function ensureBoardHeight(){
   const needed=TOP_PAD+((currentRow+2)*ROW_HEIGHT);
-  board.style.minHeight=Math.max(window.innerHeight-170,needed)+'px';
+  board.style.minHeight=Math.max(window.innerHeight-190,needed)+'px';
 }
 
 function render(){
   board.querySelectorAll('.placed,.row-guide').forEach(n=>n.remove());
-  emptyHint.style.display=items.length?'none':'block';
-
-  const rows=Math.max(currentRow, ...items.map(i=>i.row), 0);
+  emptyHint.style.display=items.length?'none':'flex';
+  const rows=Math.max(currentRow,...items.map(i=>i.row),0);
   for(let r=0;r<=rows;r++){
     const g=document.createElement('div');
     g.className='row-guide';
     g.style.top=yFor(r)+'px';
     board.appendChild(g);
   }
-
   for(const it of items){
     const e=document.createElement('div');
     e.className='placed'+(selected===it.id?' selected':'');
@@ -91,80 +82,59 @@ function render(){
     e.onclick=(ev)=>{ev.stopPropagation();selected=it.id;render()};
     board.appendChild(e);
   }
-
   const countInRow=items.filter(i=>i.row===currentRow).length;
   rowStatus.textContent=`Row ${currentRow+1} · ${countInRow} stitch${countInRow===1?'':'es'}`;
   const sel=items.find(i=>i.id===selected);
-  selectedStatus.textContent=sel?`${defs.find(d=>d.id===sel.type)?.name||sel.type} selected`:`Place rotation ${placementRotation}°`;
+  selectedStatus.textContent=sel?`${defs.find(d=>d.id===sel.type)?.name||sel.type} selected`:`Rotation ${placementRotation}°`;
   rotateBtn.textContent=`Rotate ${placementRotation}°`;
   ensureBoardHeight();
 }
 
 function place(){
-  if(currentCol>=COLS){nextRow();}
+  if(currentCol>=COLS){nextRow(false);}
   snapshot();
   const dir=directionSelect.value;
-  const type=stitchSelect.value;
-  const item={
-    id:crypto.randomUUID(),
-    type,
-    row:currentRow,
-    col:currentCol,
-    x:xFor(currentCol,dir),
-    y:yFor(currentRow),
-    rotation:placementRotation
-  };
+  const type=stitchSelect.value || 'chain';
+  const item={id:crypto.randomUUID(),type,row:currentRow,col:currentCol,x:xFor(currentCol,dir),y:yFor(currentRow),rotation:placementRotation};
   items.push(item);
   selected=item.id;
   currentCol++;
   render();
 }
 
-function nextRow(){
-  snapshot();
+function nextRow(makeSnapshot=true){
+  if(makeSnapshot)snapshot();
   currentRow++;
   currentCol=0;
   selected=null;
   render();
 }
 
-placeBtn.onclick=place;
-newRowBtn.onclick=nextRow;
-rotateBtn.onclick=()=>{
+placeBtn.addEventListener('click',place);
+newRowBtn.addEventListener('click',()=>nextRow(true));
+rotateBtn.addEventListener('click',()=>{
   placementRotation=(placementRotation+90)%360;
   const it=items.find(i=>i.id===selected);
   if(it){snapshot();it.rotation=(it.rotation+90)%360;}
   render();
-};
-
-deleteBtn.onclick=()=>{
+});
+deleteBtn.addEventListener('click',()=>{
   if(!items.length)return;
   snapshot();
-  if(selected){items=items.filter(i=>i.id!==selected);selected=null;}
-  else items.pop();
-  const rowItems=items.filter(i=>i.row===currentRow);
-  currentCol=rowItems.length;
+  if(selected){items=items.filter(i=>i.id!==selected);selected=null;}else{items.pop();}
+  currentCol=items.filter(i=>i.row===currentRow).length;
   render();
-};
-
-undoBtn.onclick=()=>{
+});
+undoBtn.addEventListener('click',()=>{
   if(!history.length)return;
   const prev=JSON.parse(history.pop());
-  items=prev.items||[];
-  currentRow=prev.currentRow||0;
-  currentCol=prev.currentCol||0;
-  placementRotation=prev.placementRotation||0;
-  selected=null;
-  render();
-};
-
-clearBtn.onclick=()=>{
+  items=prev.items||[];currentRow=prev.currentRow||0;currentCol=prev.currentCol||0;placementRotation=prev.placementRotation||0;selected=null;render();
+});
+clearBtn.addEventListener('click',()=>{
   if(!items.length)return;
   if(!confirm('Clear the whole board?'))return;
-  snapshot();
-  items=[];selected=null;currentRow=0;currentCol=0;placementRotation=0;render();
-};
-
-board.onclick=()=>{selected=null;render()};
+  snapshot();items=[];selected=null;currentRow=0;currentCol=0;placementRotation=0;render();
+});
+board.addEventListener('click',()=>{selected=null;render()});
 window.addEventListener('resize',ensureBoardHeight);
 render();
