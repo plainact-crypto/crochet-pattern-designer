@@ -1,5 +1,4 @@
 // Presentation layer for Photo Mode round drafts.
-// Keeps manual drawing symbols large, but makes imported crochet charts readable at a glance.
 const photoChartBaseRender = render;
 render = function(){
   photoChartBaseRender();
@@ -27,6 +26,7 @@ render = function(){
     const cx = ring ? (ring.x/100)*bw : bw/2;
     const cy = ring ? ring.y : 1100;
     const rounds = [...new Set(roundItems.map(i=>i.round).filter(r=>r>0))].sort((a,b)=>a-b);
+    const labelAngle=-Math.PI*.22;
 
     for(const rr of rounds){
       const group = roundItems.filter(i=>i.round===rr);
@@ -46,9 +46,9 @@ render = function(){
 
       const label=document.createElement('div');
       label.className='photo-round-label';
-      label.textContent=`R${rr} · ~${group.length} sts`;
-      label.style.left=(cx+radius+14)+'px';
-      label.style.top=(cy-10)+'px';
+      label.textContent=`R${rr} · ~${group.length}`;
+      label.style.left=(cx+Math.cos(labelAngle)*radius+10)+'px';
+      label.style.top=(cy+Math.sin(labelAngle)*radius)+'px';
       board.appendChild(label);
     }
 
@@ -57,9 +57,7 @@ render = function(){
     const sel=items.find(i=>i.id===selected);
     if(sel?.photoDraft && Number.isFinite(sel.round)){
       selectedStatus.textContent=sel.round===0?'Magic Ring selected':`R${sel.round} · ${defs.find(d=>d.id===sel.type)?.name||sel.type} · estimated`;
-    }else if(!sel){
-      selectedStatus.textContent='Round chart · estimated draft';
-    }
+    }else if(!sel){selectedStatus.textContent='Round chart · estimated draft';}
   }
 };
 render();
