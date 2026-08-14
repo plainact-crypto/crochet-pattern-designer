@@ -18,6 +18,10 @@ const selectedStatus=document.getElementById('selectedStatus');
 const zoomInBtn=document.getElementById('zoomInBtn');
 const zoomOutBtn=document.getElementById('zoomOutBtn');
 const zoomResetBtn=document.getElementById('zoomResetBtn');
+const quickPlaceBtn=document.getElementById('quickPlaceBtn');
+const quickUndoBtn=document.getElementById('quickUndoBtn');
+const quickDeleteBtn=document.getElementById('quickDeleteBtn');
+const quickRotateBtn=document.getElementById('quickRotateBtn');
 
 const COLS=14;
 const X_PAD=5.5;
@@ -136,31 +140,42 @@ function nextRow(makeSnapshot=true){
   render();
 }
 
-placeBtn.addEventListener('click',place);
-newRowBtn.addEventListener('click',()=>nextRow(true));
-rotateBtn.addEventListener('click',()=>{
+function rotate(){
   placementRotation=(placementRotation+90)%360;
   const it=items.find(i=>i.id===selected);
   if(it){snapshot();it.rotation=(it.rotation+90)%360;}
   render();
-});
-deleteBtn.addEventListener('click',()=>{
+}
+
+function removeSelected(){
   if(!items.length)return;
   snapshot();
   if(selected){items=items.filter(i=>i.id!==selected);selected=null;}else{items.pop();}
   currentCol=items.filter(i=>i.row===currentRow).length;
   render();
-});
-undoBtn.addEventListener('click',()=>{
+}
+
+function undo(){
   if(!history.length)return;
   const prev=JSON.parse(history.pop());
   items=prev.items||[];currentRow=prev.currentRow||0;currentCol=prev.currentCol||0;placementRotation=prev.placementRotation||0;selected=null;render();
-});
+}
+
+placeBtn.addEventListener('click',place);
+newRowBtn.addEventListener('click',()=>nextRow(true));
+rotateBtn.addEventListener('click',rotate);
+deleteBtn.addEventListener('click',removeSelected);
+undoBtn.addEventListener('click',undo);
 clearBtn.addEventListener('click',()=>{
   if(!items.length)return;
   if(!confirm('Clear the whole board?'))return;
   snapshot();items=[];selected=null;currentRow=0;currentCol=0;placementRotation=0;render();
 });
+
+quickPlaceBtn?.addEventListener('click',place);
+quickUndoBtn?.addEventListener('click',undo);
+quickDeleteBtn?.addEventListener('click',removeSelected);
+quickRotateBtn?.addEventListener('click',rotate);
 
 zoomInBtn.addEventListener('click',()=>zoomAround(zoom+.15));
 zoomOutBtn.addEventListener('click',()=>zoomAround(zoom-.15));
