@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Crochet Pattern Designer</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="logo">⌁</div><div><h1>Crochet Pattern Designer</h1><p>Draw the chart before you crochet it.</p></div></div>
+  <div class="section-title">Stitches</div>
+  <div class="stitches" id="stitches"></div>
+  <div class="section-title">Board</div>
+  <div class="toggle"><button id="whiteBtn" class="active">White</button><button id="blackBtn">Black</button></div>
+  <div class="section-title">Symbol size</div>
+  <input id="size" class="range" type="range" min="22" max="76" value="42" />
+  <div class="section-title">Actions</div>
+  <div class="controls">
+    <button class="ctl" id="undo">Undo</button><button class="ctl" id="redo">Redo</button>
+    <button class="ctl" id="rotateL">↶ Rotate</button><button class="ctl" id="rotateR">↷ Rotate</button>
+    <button class="ctl" id="duplicate">Duplicate</button><button class="ctl danger" id="delete">Delete</button>
+    <button class="ctl full" id="clear">Clear board</button>
+  </div>
+  <div class="section-title">How it works</div>
+  <div class="legend">1. Choose a stitch.<br>2. Tap anywhere on the board.<br>3. Tap a symbol to select it.<br>4. Drag to reposition; rotate or duplicate as needed.</div>
+</aside>
+<main class="main">
+  <div class="topbar">
+    <div class="title-wrap"><input id="projectName" value="Untitled Pattern" /><div class="subtitle">Interactive crochet chart workspace</div></div>
+    <div class="toolbar"><button class="ctl" id="save">Save</button><button class="ctl" id="load">Load</button><button class="ctl primary" id="export">Export SVG</button></div>
+  </div>
+  <div class="canvas-wrap"><div class="board-shell"><div id="board" class="board"><div class="hint" id="hint"><b>Choose a stitch</b><br>then tap the board to place it</div></div></div></div>
+  <div class="status"><span id="status">0 stitches</span><span id="selectedStatus">Nothing selected</span></div>
+</main>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
