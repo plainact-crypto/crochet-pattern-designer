@@ -3,38 +3,48 @@ const defs=[
 ].map(([id,name,abbr])=>({id,name,abbr}));
 
 const board=document.getElementById('board');
-const stitchesEl=document.getElementById('stitches');
-const hint=document.getElementById('hint');
-const status=document.getElementById('status');
+const stitchSelect=document.getElementById('stitchSelect');
+const directionSelect=document.getElementById('directionSelect');
+const placeBtn=document.getElementById('placeBtn');
+const newRowBtn=document.getElementById('newRowBtn');
+const rotateBtn=document.getElementById('rotateBtn');
+const deleteBtn=document.getElementById('deleteBtn');
+const undoBtn=document.getElementById('undoBtn');
+const clearBtn=document.getElementById('clearBtn');
+const emptyHint=document.getElementById('emptyHint');
+const rowStatus=document.getElementById('rowStatus');
 const selectedStatus=document.getElementById('selectedStatus');
-const sizeInput=document.getElementById('size');
-const whiteBtn=document.getElementById('whiteBtn');
-const blackBtn=document.getElementById('blackBtn');
-const rotateLBtn=document.getElementById('rotateL');
-const rotateRBtn=document.getElementById('rotateR');
-const duplicateBtn=document.getElementById('duplicate');
-const deleteBtn=document.getElementById('delete');
-const clearBtn=document.getElementById('clear');
-const undoBtn=document.getElementById('undo');
-const redoBtn=document.getElementById('redo');
-const saveBtn=document.getElementById('save');
-const loadBtn=document.getElementById('load');
-const exportBtn=document.getElementById('export');
-const projectName=document.getElementById('projectName');
 
-let active='chain',items=[],selected=null,history=[],future=[];
+const COLS=14;
+const X_PAD=5.5;
+const ROW_HEIGHT=92;
+const TOP_PAD=66;
+const SYMBOL_SIZE=46;
+let items=[];
+let selected=null;
+let history=[];
+let currentRow=0;
+let currentCol=0;
+let placementRotation=0;
 
-function svgFor(type,size,color){
+for(const d of defs){
+  const o=document.createElement('option');
+  o.value=d.id;
+  o.textContent=`${d.name} (${d.abbr})`;
+  stitchSelect.appendChild(o);
+}
+
+function line(a,b,c,d){return `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}"/>`}
+function svgFor(type,size,color='#171717'){
   const s=size,sw=Math.max(1.7,size/20);let b='';
-  const l=(a,b,c,d)=>`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}"/>`;
   if(type==='chain')b=`<ellipse cx="${s/2}" cy="${s/2}" rx="${s*.34}" ry="${s*.14}"/>`;
   if(type==='slip')b=`<circle cx="${s/2}" cy="${s/2}" r="${s*.1}" fill="${color}"/>`;
-  if(type==='single')b=l(s*.25,s*.25,s*.75,s*.75)+l(s*.75,s*.25,s*.25,s*.75);
-  if(type==='half')b=l(s*.5,s*.1,s*.5,s*.9)+l(s*.27,s*.35,s*.73,s*.35);
-  if(type==='double')b=l(s*.5,s*.08,s*.5,s*.92)+l(s*.27,s*.30,s*.73,s*.30)+l(s*.30,s*.55,s*.70,s*.40);
-  if(type==='treble')b=l(s*.5,s*.05,s*.5,s*.95)+l(s*.27,s*.25,s*.73,s*.25)+l(s*.30,s*.50,s*.70,s*.36)+l(s*.30,s*.66,s*.70,s*.52);
-  if(type==='dtr')b=l(s*.5,s*.04,s*.5,s*.96)+l(s*.25,s*.22,s*.75,s*.22)+l(s*.30,s*.44,s*.70,s*.32)+l(s*.30,s*.59,s*.70,s*.47)+l(s*.30,s*.74,s*.70,s*.62);
-  if(type==='picot')b=`<circle cx="${s/2}" cy="${s*.28}" r="${s*.12}"/>${l(s*.5,s*.40,s*.5,s*.88)}`;
+  if(type==='single')b=line(s*.25,s*.25,s*.75,s*.75)+line(s*.75,s*.25,s*.25,s*.75);
+  if(type==='half')b=line(s*.5,s*.1,s*.5,s*.9)+line(s*.27,s*.35,s*.73,s*.35);
+  if(type==='double')b=line(s*.5,s*.08,s*.5,s*.92)+line(s*.27,s*.30,s*.73,s*.30)+line(s*.30,s*.55,s*.70,s*.40);
+  if(type==='treble')b=line(s*.5,s*.05,s*.5,s*.95)+line(s*.27,s*.25,s*.73,s*.25)+line(s*.30,s*.50,s*.70,s*.36)+line(s*.30,s*.66,s*.70,s*.52);
+  if(type==='dtr')b=line(s*.5,s*.04,s*.5,s*.96)+line(s*.25,s*.22,s*.75,s*.22)+line(s*.30,s*.44,s*.70,s*.32)+line(s*.30,s*.59,s*.70,s*.47)+line(s*.30,s*.74,s*.70,s*.62);
+  if(type==='picot')b=`<circle cx="${s/2}" cy="${s*.28}" r="${s*.12}"/>${line(s*.5,s*.40,s*.5,s*.88)}`;
   if(type==='ring')b=`<circle cx="${s/2}" cy="${s/2}" r="${s*.30}"/>`;
   if(type==='puff')b=[.32,.42,.5,.58,.68].map(x=>`<path d="M ${s*.5} ${s*.84} Q ${s*x} ${s*.35} ${s*.5} ${s*.16}"/>`).join('');
   if(type==='cluster')b=[.34,.5,.66].map(x=>`<path d="M ${s*.5} ${s*.86} Q ${s*x} ${s*.48} ${s*.5} ${s*.16}"/>`).join('')+`<circle cx="${s*.5}" cy="${s*.16}" r="${s*.06}"/>`;
@@ -42,93 +52,119 @@ function svgFor(type,size,color){
   return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
 }
 
-function palette(){
-  stitchesEl.innerHTML='';
-  defs.forEach(d=>{
-    const x=document.createElement('button');
-    x.className='stitch'+(d.id===active?' active':'');
-    x.innerHTML=`<div class="symbol">${svgFor(d.id,28,'#211f1d')}</div><b>${d.name}</b><small>${d.abbr}</small>`;
-    x.onclick=()=>{active=d.id;palette()};
-    stitchesEl.appendChild(x);
-  });
+function snapshot(){
+  history.push(JSON.stringify({items,currentRow,currentCol,placementRotation}));
+  if(history.length>80)history.shift();
 }
 
-function snap(){history.push(JSON.stringify(items));if(history.length>60)history.shift();future=[]}
-function restore(s){items=JSON.parse(s);selected=null;render()}
+function xFor(col,dir){
+  const span=(100-(X_PAD*2))/(COLS-1);
+  const logical=dir==='rtl'?(COLS-1-col):col;
+  return X_PAD+(logical*span);
+}
+function yFor(row){return TOP_PAD+(row*ROW_HEIGHT)}
+
+function ensureBoardHeight(){
+  const needed=TOP_PAD+((currentRow+2)*ROW_HEIGHT);
+  board.style.minHeight=Math.max(window.innerHeight-170,needed)+'px';
+}
 
 function render(){
-  board.querySelectorAll('.placed').forEach(n=>n.remove());
-  hint.style.display=items.length?'none':'block';
-  const color=board.classList.contains('black')?'#f5f1eb':'#211f1d';
-  items.forEach(it=>{
+  board.querySelectorAll('.placed,.row-guide').forEach(n=>n.remove());
+  emptyHint.style.display=items.length?'none':'block';
+
+  const rows=Math.max(currentRow, ...items.map(i=>i.row), 0);
+  for(let r=0;r<=rows;r++){
+    const g=document.createElement('div');
+    g.className='row-guide';
+    g.style.top=yFor(r)+'px';
+    board.appendChild(g);
+  }
+
+  for(const it of items){
     const e=document.createElement('div');
     e.className='placed'+(selected===it.id?' selected':'');
-    e.style.left=it.x+'%';e.style.top=it.y+'%';
-    e.style.transform=`translate(-50%,-50%) rotate(${it.r||0}deg)`;
-    e.innerHTML=svgFor(it.type,it.size,color);
-    e.onpointerdown=ev=>dragStart(ev,it.id);
-    e.onclick=ev=>{ev.stopPropagation();selected=it.id;render()};
+    e.style.left=it.x+'%';
+    e.style.top=it.y+'px';
+    e.style.transform=`translate(-50%,-50%) rotate(${it.rotation||0}deg)`;
+    e.innerHTML=svgFor(it.type,SYMBOL_SIZE);
+    e.onclick=(ev)=>{ev.stopPropagation();selected=it.id;render()};
     board.appendChild(e);
-  });
-  status.textContent=`${items.length} stitch${items.length===1?'':'es'}`;
-  const it=items.find(x=>x.id===selected);
-  selectedStatus.textContent=it?(defs.find(d=>d.id===it.type)?.name||it.type)+' selected':'Nothing selected';
+  }
+
+  const countInRow=items.filter(i=>i.row===currentRow).length;
+  rowStatus.textContent=`Row ${currentRow+1} · ${countInRow} stitch${countInRow===1?'':'es'}`;
+  const sel=items.find(i=>i.id===selected);
+  selectedStatus.textContent=sel?`${defs.find(d=>d.id===sel.type)?.name||sel.type} selected`:`Place rotation ${placementRotation}°`;
+  rotateBtn.textContent=`Rotate ${placementRotation}°`;
+  ensureBoardHeight();
 }
 
-board.onclick=e=>{
-  if(e.target!==board)return;
-  snap();
-  const r=board.getBoundingClientRect();
-  items.push({id:crypto.randomUUID(),type:active,x:(e.clientX-r.left)/r.width*100,y:(e.clientY-r.top)/r.height*100,r:0,size:+sizeInput.value});
+function place(){
+  if(currentCol>=COLS){nextRow();}
+  snapshot();
+  const dir=directionSelect.value;
+  const type=stitchSelect.value;
+  const item={
+    id:crypto.randomUUID(),
+    type,
+    row:currentRow,
+    col:currentCol,
+    x:xFor(currentCol,dir),
+    y:yFor(currentRow),
+    rotation:placementRotation
+  };
+  items.push(item);
+  selected=item.id;
+  currentCol++;
+  render();
+}
+
+function nextRow(){
+  snapshot();
+  currentRow++;
+  currentCol=0;
+  selected=null;
+  render();
+}
+
+placeBtn.onclick=place;
+newRowBtn.onclick=nextRow;
+rotateBtn.onclick=()=>{
+  placementRotation=(placementRotation+90)%360;
+  const it=items.find(i=>i.id===selected);
+  if(it){snapshot();it.rotation=(it.rotation+90)%360;}
   render();
 };
 
-let drag=null;
-function dragStart(e,id){
-  e.preventDefault();e.stopPropagation();selected=id;
-  drag={id,sx:e.clientX,sy:e.clientY,orig:{...items.find(x=>x.id===id)},moved:false};
-  window.addEventListener('pointermove',dragMove);
-  window.addEventListener('pointerup',dragEnd,{once:true});
+deleteBtn.onclick=()=>{
+  if(!items.length)return;
+  snapshot();
+  if(selected){items=items.filter(i=>i.id!==selected);selected=null;}
+  else items.pop();
+  const rowItems=items.filter(i=>i.row===currentRow);
+  currentCol=rowItems.length;
   render();
-}
-function dragMove(e){
-  if(!drag)return;
-  const d=Math.abs(e.clientX-drag.sx)+Math.abs(e.clientY-drag.sy);if(d<4)return;
-  if(!drag.moved){snap();drag.moved=true}
-  const r=board.getBoundingClientRect(),it=items.find(x=>x.id===drag.id);
-  it.x=Math.max(0,Math.min(100,drag.orig.x+(e.clientX-drag.sx)/r.width*100));
-  it.y=Math.max(0,Math.min(100,drag.orig.y+(e.clientY-drag.sy)/r.height*100));
-  render();
-}
-function dragEnd(){window.removeEventListener('pointermove',dragMove);drag=null}
-function mod(fn){const it=items.find(x=>x.id===selected);if(!it)return;snap();fn(it);render()}
-
-rotateLBtn.onclick=()=>mod(i=>i.r=(i.r||0)-15);
-rotateRBtn.onclick=()=>mod(i=>i.r=(i.r||0)+15);
-duplicateBtn.onclick=()=>{const it=items.find(x=>x.id===selected);if(!it)return;snap();const c={...it,id:crypto.randomUUID(),x:Math.min(98,it.x+4),y:Math.min(98,it.y+4)};items.push(c);selected=c.id;render()};
-deleteBtn.onclick=()=>{if(!selected)return;snap();items=items.filter(x=>x.id!==selected);selected=null;render()};
-clearBtn.onclick=()=>{if(items.length&&confirm('Clear the whole board?')){snap();items=[];selected=null;render()}};
-undoBtn.onclick=()=>{if(history.length){future.push(JSON.stringify(items));restore(history.pop())}};
-redoBtn.onclick=()=>{if(future.length){history.push(JSON.stringify(items));restore(future.pop())}};
-
-function theme(black){board.classList.toggle('black',black);blackBtn.classList.toggle('active',black);whiteBtn.classList.toggle('active',!black);render()}
-whiteBtn.onclick=()=>theme(false);
-blackBtn.onclick=()=>theme(true);
-
-saveBtn.onclick=()=>{localStorage.setItem('crochetPattern',JSON.stringify({name:projectName.value,items,black:board.classList.contains('black')}));alert('Pattern saved on this device.')};
-loadBtn.onclick=()=>{const raw=localStorage.getItem('crochetPattern');if(!raw)return alert('No saved pattern yet.');const d=JSON.parse(raw);snap();items=d.items||[];projectName.value=d.name||'Untitled Pattern';theme(!!d.black)};
-
-exportBtn.onclick=()=>{
-  const w=1200,h=800,color=board.classList.contains('black')?'#f5f1eb':'#211f1d',bg=board.classList.contains('black')?'#111':'#fff';
-  const content=items.map(it=>`<g transform="translate(${it.x/100*w} ${it.y/100*h}) rotate(${it.r||0}) translate(${-it.size/2} ${-it.size/2})">${svgFor(it.type,it.size,color).replace(/^<svg[^>]*>|<\/svg>$/g,'')}</g>`).join('');
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><rect width="100%" height="100%" fill="${bg}"/>${content}</svg>`;
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));a.download=(projectName.value||'crochet-pattern').replace(/\s+/g,'-').toLowerCase()+'.svg';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
 };
 
-window.onkeydown=e=>{
-  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?redoBtn.click():undoBtn.click()}
-  if((e.key==='Delete'||e.key==='Backspace')&&document.activeElement.tagName!=='INPUT')deleteBtn.click();
+undoBtn.onclick=()=>{
+  if(!history.length)return;
+  const prev=JSON.parse(history.pop());
+  items=prev.items||[];
+  currentRow=prev.currentRow||0;
+  currentCol=prev.currentCol||0;
+  placementRotation=prev.placementRotation||0;
+  selected=null;
+  render();
 };
 
-palette();
+clearBtn.onclick=()=>{
+  if(!items.length)return;
+  if(!confirm('Clear the whole board?'))return;
+  snapshot();
+  items=[];selected=null;currentRow=0;currentCol=0;placementRotation=0;render();
+};
+
+board.onclick=()=>{selected=null;render()};
+window.addEventListener('resize',ensureBoardHeight);
 render();
