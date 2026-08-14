@@ -3,6 +3,7 @@ const defs=[
 ].map(([id,name,abbr])=>({id,name,abbr}));
 
 const board=document.getElementById('board');
+const boardWrap=document.getElementById('boardWrap');
 const stitchSelect=document.getElementById('stitchSelect');
 const directionSelect=document.getElementById('directionSelect');
 const placeBtn=document.getElementById('placeBtn');
@@ -14,18 +15,26 @@ const clearBtn=document.getElementById('clearBtn');
 const emptyHint=document.getElementById('emptyHint');
 const rowStatus=document.getElementById('rowStatus');
 const selectedStatus=document.getElementById('selectedStatus');
+const zoomInBtn=document.getElementById('zoomInBtn');
+const zoomOutBtn=document.getElementById('zoomOutBtn');
+const zoomResetBtn=document.getElementById('zoomResetBtn');
 
 const COLS=14;
 const X_PAD=5.5;
 const ROW_HEIGHT=92;
 const TOP_PAD=66;
 const SYMBOL_SIZE=46;
+const MIN_ZOOM=.5;
+const MAX_ZOOM=3;
 let items=[];
 let selected=null;
 let history=[];
 let currentRow=0;
 let currentCol=0;
 let placementRotation=0;
+let zoom=1;
+let pinchStartDistance=null;
+let pinchStartZoom=1;
 
 function line(a,b,c,d){return `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}"/>`}
 function svgFor(type,size,color='#171717'){
@@ -60,6 +69,23 @@ function yFor(row){return TOP_PAD+(row*ROW_HEIGHT)}
 function ensureBoardHeight(){
   const needed=TOP_PAD+((currentRow+2)*ROW_HEIGHT);
   board.style.minHeight=Math.max(window.innerHeight-190,needed)+'px';
+}
+
+function applyZoom(nextZoom){
+  zoom=Math.max(MIN_ZOOM,Math.min(MAX_ZOOM,nextZoom));
+  board.style.zoom=zoom;
+  zoomResetBtn.textContent=Math.round(zoom*100)+'%';
+}
+
+function zoomAround(nextZoom,clientX,clientY){
+  const oldZoom=zoom;
+  const rect=boardWrap.getBoundingClientRect();
+  const localX=(clientX ?? (rect.left+rect.width/2))-rect.left+boardWrap.scrollLeft;
+  const localY=(clientY ?? (rect.top+rect.height/2))-rect.top+boardWrap.scrollTop;
+  applyZoom(nextZoom);
+  const ratio=zoom/oldZoom;
+  boardWrap.scrollLeft=Math.max(0,localX*ratio-((clientX ?? (rect.left+rect.width/2))-rect.left));
+  boardWrap.scrollTop=Math.max(0,localY*ratio-((clientY ?? (rect.top+rect.height/2))-rect.top));
 }
 
 function render(){
@@ -135,6 +161,38 @@ clearBtn.addEventListener('click',()=>{
   if(!confirm('Clear the whole board?'))return;
   snapshot();items=[];selected=null;currentRow=0;currentCol=0;placementRotation=0;render();
 });
+
+zoomInBtn.addEventListener('click',()=>zoomAround(zoom+.15));
+zoomOutBtn.addEventListener('click',()=>zoomAround(zoom-.15));
+zoomResetBtn.addEventListener('click',()=>zoomAround(1));
+
+function touchDistance(touches){
+  const a=touches[0],b=touches[1];
+  return Math.hypot(b.clientX-a.clientX,b.clientY-a.clientY);
+}
+function touchMidpoint(touches){
+  return {x:(touches[0].clientX+touches[1].clientX)/2,y:(touches[0].clientY+touches[1].clientY)/2};
+}
+boardWrap.addEventListener('touchstart',(e)=>{
+  if(e.touches.length===2){
+    pinchStartDistance=touchDistance(e.touches);
+    pinchStartZoom=zoom;
+    e.preventDefault();
+  }
+},{passive:false});
+boardWrap.addEventListener('touchmove',(e)=>{
+  if(e.touches.length===2&&pinchStartDistance){
+    const mid=touchMidpoint(e.touches);
+    const ratio=touchDistance(e.touches)/pinchStartDistance;
+    zoomAround(pinchStartZoom*ratio,mid.x,mid.y);
+    e.preventDefault();
+  }
+},{passive:false});
+boardWrap.addEventListener('touchend',(e)=>{
+  if(e.touches.length<2)pinchStartDistance=null;
+});
+
 board.addEventListener('click',()=>{selected=null;render()});
 window.addEventListener('resize',ensureBoardHeight);
+applyZoom(1);
 render();
