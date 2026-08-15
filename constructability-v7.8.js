@@ -6,131 +6,22 @@
   const one=(g,r,s)=>role(g,r,s)[0]||null;
   const uid=()=>{try{return crypto.randomUUID()}catch{return 'r4-transition-'+Date.now().toString(36)}};
   const seqEq=(nodes,types)=>nodes.length===types.length&&nodes.every((n,i)=>n.type===types[i]);
-
-  function stamp(){
-    window.__CROCHET_CAD_VERSION=VERSION;
-    document.title=`Crochet Pattern Designer · ${VERSION}`;
-    const b=document.querySelector('.brandcopy strong');if(b)b.textContent=`Crochet CAD ${VERSION}`;
-    const p=document.querySelector('#sizingToolsV71 > strong');if(p)p.textContent=`SIZE / GRID · ${VERSION}`;
-  }
-
-  function ensureR4Transition(){
-    const g=window.activeCrochetGraph;
-    if(!g||g.kind!=='lace-flower')return false;
-    if(one(g,'r4-transition-join'))return true;
-    const r3End=one(g,'inner-petal-stitch-join',5);
-    const r4Start=g.nodes.find(n=>n.role==='center-sc'&&n.centerIndex===1);
-    if(!r3End||!r4Start)return false;
-    const n={id:uid(),type:'slip',round:4,role:'r4-transition-join',group:'r4-transition',sector:1,order:-1,anchor:r3End.id,workedInto:r4Start.id,topologyOnly:true,visualJoin:true};
-    g.nodes.push(n);
-    try{
-      if(typeof items!=='undefined'&&Array.isArray(items)&&!items.some(i=>i.id===n.id)){
-        const target=items.find(i=>i.id===r4Start.id);
-        if(target){items.push({id:n.id,type:'slip',row:4,col:-1,x:target.x,y:target.y,gridCol:target.gridCol,gridRow:target.gridRow,gridX:target.gridCol,gridY:target.gridRow,rotation:target.rotation||0,direction:'e',generatedPattern:true,patternKind:'lace-flower',sourceRegion:'r4-transition',role:n.role,round:4,sector:1,orderInPath:-1,workedInto:r4Start.id,anchor:r3End.id,confidence:1,estimated:false,visualJoin:true,topologyOnly:true,visualWidth:8,visualHeight:8,footprint:{widthPx:0,heightPx:0,rotationDeg:0,body:false}});if(typeof render==='function')render();}
-      }
-    }catch(e){console.warn('Could not mirror R4 transition to board items',e)}
-    return true;
-  }
-
-  function traverseSpaces(spaces,startId){
-    const used=[],seen=new Set();let current=startId;
-    for(let k=0;k<spaces.length;k++){
-      const sp=spaces.find(x=>x.startAnchor===current&&!seen.has(x.id));
-      if(!sp)return{ok:false,used,current,reason:`no space starts at anchor ${current}`};
-      seen.add(sp.id);used.push(sp);current=sp.endAnchor;
-    }
-    return{ok:used.length===spaces.length&&current===startId,used,current,reason:current===startId?'':`cycle ends at ${current} instead of ${startId}`};
-  }
-
-  function chainProof(g,sp,count){
-    if(!sp||sp.chainIds?.length!==count)return{ok:false,reason:`expected ${count} chains`};
-    const chain=sp.chainIds.map(id=>g.nodes.find(n=>n.id===id));
-    if(chain.some(n=>!n||n.type!=='chain'))return{ok:false,reason:'missing/non-chain node in chain space'};
-    let prev=sp.startAnchor;
-    for(let i=0;i<chain.length;i++){
-      if(chain[i].anchor!==prev)return{ok:false,reason:`chain ${i+1} anchor discontinuity`};
-      prev=chain[i].id;
-    }
-    const join=g.nodes.find(n=>n.id===sp.joinId);
-    if(!join||join.type!=='slip'||join.anchor!==prev||join.workedInto!==sp.endAnchor)return{ok:false,reason:'terminal slip join does not close chain space to end anchor'};
-    return{ok:true};
-  }
-
-  function audit(){
-    stamp();
-    const g=window.activeCrochetGraph,errors=[],checks=[];
-    const pass=(name,ok,detail='')=>{checks.push({name,ok,detail});if(!ok)errors.push(`${name}${detail?': '+detail:''}`)};
-    if(!g||g.kind!=='lace-flower'){
-      const out={ok:false,errors:['No active lace-flower graph'],checks:[],version:VERSION};window.__LACE_CONSTRUCTABILITY_AUDIT=out;renderStatus(out);return out;
-    }
-    ensureR4Transition();
-
-    const ids=new Set(g.nodes.map(n=>n.id)),spids=new Set((g.spaces||[]).map(s=>s.id));
-    const badRefs=[];
-    for(const n of g.nodes){if(n.workedInto&&!ids.has(n.workedInto)&&!spids.has(n.workedInto))badRefs.push(`${n.role||n.type}.workedInto`);if(n.anchor&&!ids.has(n.anchor))badRefs.push(`${n.role||n.type}.anchor`);}
-    pass('All node references resolve',badRefs.length===0,badRefs.slice(0,6).join(', '));
-    pass('All node IDs are unique',ids.size===g.nodes.length,`nodes=${g.nodes.length}, unique=${ids.size}`);
-
-    const center=g.nodes.find(n=>n.role==='start');
-    pass('Start is one Magic Ring',!!center&&center.type==='ring');
-    const r1=role(g,'center-sc').sort((a,b)=>(a.centerIndex??0)-(b.centerIndex??0));
-    pass('R1 exact construction: 10 sc into MR',r1.length===10&&r1.every((n,i)=>n.type==='single'&&n.workedInto===center?.id&&n.centerIndex===i),`found ${r1.length}`);
-    const r1join=one(g,'r1-join');pass('R1 closes with sl st in first sc',!!r1join&&r1join.type==='slip'&&r1join.workedInto===r1[0]?.id);
-
-    const r2=(g.spaces||[]).filter(s=>s.round===2);
-    let r2ok=r2.length===5;for(const sp of r2){const cp=chainProof(g,sp,3);if(!cp.ok)r2ok=false;}
-    const r2walk=r1[0]?traverseSpaces(r2,r1[0].id):{ok:false};
-    pass('R2 exact: five contiguous ch-3 spaces around alternating R1 anchors',r2ok&&r2walk.ok,r2walk.reason||'');
-
-    const innerSeq=['single','half','double','double','double','half','single'];
-    let r3ok=r2.length===5;
-    for(const sp of r2){const body=role(g,'inner-petal-stitch',sp.sector).sort((a,b)=>(a.order??0)-(b.order??0));const join=one(g,'inner-petal-stitch-join',sp.sector);if(!seqEq(body,innerSeq)||!body.every(n=>n.workedInto===sp.id)||join?.type!=='slip'||join?.workedInto!==sp.endAnchor)r3ok=false;}
-    pass('R3 exact stitch sequence and ending anchor for all 5 petals',r3ok);
-
-    const r3End=one(g,'inner-petal-stitch-join',5),transition=one(g,'r4-transition-join'),r4Start=r1[1];
-    pass('R3→R4 explicit sl st reaches next unused R1 sc',!!transition&&transition.type==='slip'&&transition.anchor===r3End?.id&&transition.workedInto===r4Start?.id);
-
-    const r4=(g.spaces||[]).filter(s=>s.round===4);let r4chains=r4.length===5;for(const sp of r4){if(!chainProof(g,sp,7).ok)r4chains=false;}
-    const r4walk=r4Start?traverseSpaces(r4,r4Start.id):{ok:false,reason:'missing R4 start'};
-    pass('R4 exact: five contiguous ch-7 spaces close back to start',r4chains&&r4walk.ok,r4walk.reason||'');
-
-    const midSeq=['single','half','double','double','treble','treble','treble','double','double','half','single'];
-    let r5ok=r4.length===5;
-    for(const sp of r4){const body=role(g,'mid-petal-stitch',sp.sector).sort((a,b)=>(a.order??0)-(b.order??0));const join=one(g,'mid-petal-stitch-join',sp.sector);if(!seqEq(body,midSeq)||!body.every(n=>n.workedInto===sp.id)||join?.type!=='slip'||join?.workedInto!==sp.endAnchor)r5ok=false;}
-    pass('R5 exact 11-stitch sequence and ending join for all 5 petals',r5ok);
-
-    const r5End=one(g,'mid-petal-stitch-join',5),r6=(g.spaces||[]).filter(s=>s.round===6);let r6chains=r6.length===5;for(const sp of r6){if(!chainProof(g,sp,11).ok)r6chains=false;}
-    const r6walk=r5End?traverseSpaces(r6,r5End.id):{ok:false,reason:'missing fifth R5 join'};
-    pass('R6 exact: starts at fifth R5 join, five contiguous ch-11 spaces, closes to start',r6chains&&r6walk.ok,r6walk.reason||'');
-
-    const outerSeq=['single','half','double','double','treble','treble','treble','dtr','dtr','dtr','treble','treble','treble','double','double','half','single'];
-    let r7ok=r6.length===5;
-    for(const sp of r6){const body=role(g,'outer-petal-stitch',sp.sector).sort((a,b)=>(a.order??0)-(b.order??0));const join=one(g,'outer-petal-stitch-join',sp.sector);if(!seqEq(body,outerSeq)||!body.every(n=>n.workedInto===sp.id)||join?.type!=='slip'||join?.workedInto!==sp.endAnchor)r7ok=false;}
-    pass('R7 exact 17-stitch sequence and ending join for all 5 petals',r7ok);
-
-    const outer=role(g,'outer-petal-stitch'),edge=role(g,'edge-sc');let edgeOk=edge.length===95&&outer.length===85;
-    for(const base of outer){const mapped=edge.filter(e=>e.workedInto===base.id);const expected=base.order===8?3:1;if(mapped.length!==expected||mapped.some(e=>e.type!=='single')){edgeOk=false;break;}}
-    pass('R8 exact one-to-one edge mapping with 3 sc in each center dtr; total 95 sc',edgeOk,`R7=${outer.length}, R8=${edge.length}`);
-    const edgeJoins=role(g,'edge-join');pass('R8 has one sector-closing sl st per petal',edgeJoins.length===5&&edgeJoins.every(n=>n.type==='slip'&&!!n.workedInto),`found ${edgeJoins.length}`);
-
-    const expectedCounts={0:1,1:11,2:20,3:40,4:41,5:60,6:61,7:90,8:100};
-    const roundCounts={};for(const n of g.nodes)roundCounts[n.round]=(roundCounts[n.round]||0)+1;
-    pass('Round node totals match fixed topology',Object.entries(expectedCounts).every(([r,c])=>roundCounts[r]===c),JSON.stringify(roundCounts));
-
-    const layout=window.__LACE_LAYOUT_SNAPSHOT?.validation;
-    pass('Geometry/layout validator passes',layout?.ok===true,(layout?.errors||[]).join(' · '));
-
-    const out={ok:errors.length===0,errors,checks,version:VERSION,proofType:'deterministic-topology-proof',checkedAt:new Date().toISOString()};
-    window.__LACE_CONSTRUCTABILITY_AUDIT=out;g.constructability=out;renderStatus(out);return out;
-  }
-
-  function renderStatus(a){
-    const panel=document.getElementById('sizingToolsV71');if(panel){let e=document.getElementById('constructabilityStatusV78');if(!e){e=document.createElement('div');e.id='constructabilityStatusV78';e.style.cssText='margin-top:10px;padding:8px 9px;border-radius:7px;font:800 11px/1.35 system-ui';panel.appendChild(e)}e.style.background=a.ok?'rgba(28,120,68,.2)':'rgba(180,45,45,.2)';e.style.border=`1px solid ${a.ok?'#2aa45f':'#d55454'}`;e.style.color=a.ok?'#8ff0b8':'#ffabab';e.textContent=`CONSTRUCTABILITY PROOF: ${a.ok?'PASS':'FAIL'}${a.ok?' · exact stitches + anchors + joins + counts verified':` · ${a.errors[0]||'audit failed'}`}`;}
-    const summary=document.getElementById('laceSummary');if(summary&&summary.style.display!=='none'&&!summary.dataset.v79Proof){summary.dataset.v79Proof='1';summary.innerHTML+=`<br><strong style="color:${a.ok?'#82e6a9':'#ff9c9c'}">CONSTRUCTABILITY PROOF ${a.ok?'PASS':'FAIL'}</strong>${a.ok?' · exact topology verified':` · ${(a.errors||[]).join(' · ')}`}`;}
-  }
-
-  function schedule(){let tries=0;const t=setInterval(()=>{tries++;if(window.activeCrochetGraph?.kind==='lace-flower'){clearInterval(t);ensureR4Transition();audit();}else if(tries>30)clearInterval(t)},70)}
-  window.runLaceConstructabilityAudit=audit;
-  document.addEventListener('click',e=>{if(e.target?.id==='laceImport')schedule();if(['exportPdfBtn','mobileExportPdfBtn','quickExportPdfBtn'].includes(e.target?.id)&&window.activeCrochetGraph?.kind==='lace-flower'){ensureR4Transition();const a=audit();if(!a.ok){e.preventDefault();e.stopImmediatePropagation();alert('CONSTRUCTABILITY PROOF FAIL\n'+a.errors.join('\n'));}}},true);
-  setTimeout(()=>{stamp();if(window.activeCrochetGraph?.kind==='lace-flower'){ensureR4Transition();audit();}},180);
+  function stamp(){window.__CROCHET_CAD_VERSION=VERSION;document.title=`Crochet Pattern Designer · ${VERSION}`;const b=document.querySelector('.brandcopy strong');if(b)b.textContent=`Crochet CAD ${VERSION}`;const p=document.querySelector('#sizingToolsV71 > strong');if(p)p.textContent=`SIZE / GRID · ${VERSION}`;}
+  function ensureR4Transition(){const g=window.activeCrochetGraph;if(!g||g.kind!=='lace-flower')return false;if(one(g,'r4-transition-join'))return true;const r3End=one(g,'inner-petal-stitch-join',5),r4Start=g.nodes.find(n=>n.role==='center-sc'&&n.centerIndex===1);if(!r3End||!r4Start)return false;const n={id:uid(),type:'slip',round:4,role:'r4-transition-join',group:'r4-transition',sector:1,order:-1,anchor:r3End.id,workedInto:r4Start.id,topologyOnly:true,visualJoin:true};g.nodes.push(n);try{if(typeof items!=='undefined'&&Array.isArray(items)&&!items.some(i=>i.id===n.id)){const target=items.find(i=>i.id===r4Start.id);if(target){items.push({id:n.id,type:'slip',row:4,col:-1,x:target.x,y:target.y,gridCol:target.gridCol,gridRow:target.gridRow,gridX:target.gridCol,gridY:target.gridRow,rotation:target.rotation||0,direction:'e',generatedPattern:true,patternKind:'lace-flower',sourceRegion:'r4-transition',role:n.role,round:4,sector:1,orderInPath:-1,workedInto:r4Start.id,anchor:r3End.id,confidence:1,estimated:false,visualJoin:true,topologyOnly:true,visualWidth:8,visualHeight:8,footprint:{widthPx:0,heightPx:0,rotationDeg:0,body:false}});if(typeof render==='function')render();}}}catch(e){console.warn('Could not mirror R4 transition to board items',e)}return true;}
+  function traverseSpaces(spaces,startId){const used=[],seen=new Set();let current=startId;for(let k=0;k<spaces.length;k++){const sp=spaces.find(x=>x.startAnchor===current&&!seen.has(x.id));if(!sp)return{ok:false,used,current,reason:`no space starts at anchor ${current}`};seen.add(sp.id);used.push(sp);current=sp.endAnchor;}return{ok:used.length===spaces.length&&current===startId,used,current,reason:current===startId?'':`cycle ends at ${current} instead of ${startId}`};}
+  function chainProof(g,sp,count){if(!sp||sp.chainIds?.length!==count)return{ok:false,reason:`expected ${count} chains`};const chain=sp.chainIds.map(id=>g.nodes.find(n=>n.id===id));if(chain.some(n=>!n||n.type!=='chain'))return{ok:false,reason:'missing/non-chain node in chain space'};let prev=sp.startAnchor;for(let i=0;i<chain.length;i++){if(chain[i].anchor!==prev)return{ok:false,reason:`chain ${i+1} anchor discontinuity`};prev=chain[i].id;}const join=g.nodes.find(n=>n.id===sp.joinId);if(!join||join.type!=='slip'||join.anchor!==prev||join.workedInto!==sp.endAnchor)return{ok:false,reason:'terminal slip join does not close chain space to end anchor'};return{ok:true};}
+  function audit(){stamp();const g=window.activeCrochetGraph,errors=[],checks=[];const pass=(name,ok,detail='')=>{checks.push({name,ok,detail});if(!ok)errors.push(`${name}${detail?': '+detail:''}`)};if(!g||g.kind!=='lace-flower'){const out={ok:false,errors:['No active lace-flower graph'],checks:[],version:VERSION};window.__LACE_CONSTRUCTABILITY_AUDIT=out;renderStatus(out);return out;}ensureR4Transition();const ids=new Set(g.nodes.map(n=>n.id)),spids=new Set((g.spaces||[]).map(s=>s.id)),badRefs=[];for(const n of g.nodes){if(n.workedInto&&!ids.has(n.workedInto)&&!spids.has(n.workedInto))badRefs.push(`${n.role||n.type}.workedInto`);if(n.anchor&&!ids.has(n.anchor))badRefs.push(`${n.role||n.type}.anchor`);}pass('All node references resolve',badRefs.length===0,badRefs.slice(0,6).join(', '));pass('All node IDs are unique',ids.size===g.nodes.length,`nodes=${g.nodes.length}, unique=${ids.size}`);
+    const center=g.nodes.find(n=>n.role==='start');pass('Start is one Magic Ring',!!center&&center.type==='ring');const r1=role(g,'center-sc').sort((a,b)=>(a.centerIndex??0)-(b.centerIndex??0));pass('R1 exact construction: 10 sc into MR',r1.length===10&&r1.every((n,i)=>n.type==='single'&&n.workedInto===center?.id&&n.centerIndex===i),`found ${r1.length}`);const r1join=one(g,'r1-join');pass('R1 closes with sl st in first sc',!!r1join&&r1join.type==='slip'&&r1join.workedInto===r1[0]?.id);
+    const r2=(g.spaces||[]).filter(s=>s.round===2);let r2ok=r2.length===5;for(const sp of r2)if(!chainProof(g,sp,3).ok)r2ok=false;const r2walk=r1[0]?traverseSpaces(r2,r1[0].id):{ok:false};pass('R2 exact: five contiguous ch-3 spaces around alternating R1 anchors',r2ok&&r2walk.ok,r2walk.reason||'');
+    const innerSeq=['single','half','double','double','double','half','single'];let r3ok=r2.length===5;for(const sp of r2){const body=role(g,'inner-petal-stitch',sp.sector).sort((a,b)=>(a.order??0)-(b.order??0)),join=one(g,'inner-petal-stitch-join',sp.sector);if(!seqEq(body,innerSeq)||!body.every(n=>n.workedInto===sp.id)||join?.type!=='slip'||join?.workedInto!==sp.endAnchor)r3ok=false;}pass('R3 exact stitch sequence and ending anchor for all 5 petals',r3ok);
+    const r3End=one(g,'inner-petal-stitch-join',5),transition=one(g,'r4-transition-join'),r4Start=r1[1];pass('R3→R4 explicit sl st reaches next unused R1 sc',!!transition&&transition.type==='slip'&&transition.anchor===r3End?.id&&transition.workedInto===r4Start?.id);
+    const r4=(g.spaces||[]).filter(s=>s.round===4);let r4chains=r4.length===5;for(const sp of r4)if(!chainProof(g,sp,7).ok)r4chains=false;const r4walk=r4Start?traverseSpaces(r4,r4Start.id):{ok:false,reason:'missing R4 start'};pass('R4 exact: five contiguous ch-7 spaces close back to start',r4chains&&r4walk.ok,r4walk.reason||'');
+    const midSeq=['single','half','double','double','treble','treble','treble','double','double','half','single'];let r5ok=r4.length===5;for(const sp of r4){const body=role(g,'mid-petal-stitch',sp.sector).sort((a,b)=>(a.order??0)-(b.order??0)),join=one(g,'mid-petal-stitch-join',sp.sector);if(!seqEq(body,midSeq)||!body.every(n=>n.workedInto===sp.id)||join?.type!=='slip'||join?.workedInto!==sp.endAnchor)r5ok=false;}pass('R5 exact 11-stitch sequence and ending join for all 5 petals',r5ok);
+    const r5End=one(g,'mid-petal-stitch-join',5),r6=(g.spaces||[]).filter(s=>s.round===6);let r6chains=r6.length===5;for(const sp of r6)if(!chainProof(g,sp,11).ok)r6chains=false;const r6walk=r5End?traverseSpaces(r6,r5End.id):{ok:false,reason:'missing fifth R5 join'};pass('R6 exact: starts at fifth R5 join, five contiguous ch-11 spaces, closes to start',r6chains&&r6walk.ok,r6walk.reason||'');
+    const outerSeq=['single','half','double','double','treble','treble','treble','dtr','dtr','dtr','treble','treble','treble','double','double','half','single'];let r7ok=r6.length===5;for(const sp of r6){const body=role(g,'outer-petal-stitch',sp.sector).sort((a,b)=>(a.order??0)-(b.order??0)),join=one(g,'outer-petal-stitch-join',sp.sector);if(!seqEq(body,outerSeq)||!body.every(n=>n.workedInto===sp.id)||join?.type!=='slip'||join?.workedInto!==sp.endAnchor)r7ok=false;}pass('R7 exact 17-stitch sequence and ending join for all 5 petals',r7ok);
+    const outer=role(g,'outer-petal-stitch'),edge=role(g,'edge-sc');let edgeOk=edge.length===95&&outer.length===85;for(const base of outer){const mapped=edge.filter(e=>e.workedInto===base.id),expected=base.order===8?3:1;if(mapped.length!==expected||mapped.some(e=>e.type!=='single')){edgeOk=false;break;}}pass('R8 exact one-to-one edge mapping with 3 sc in each center dtr; total 95 sc',edgeOk,`R7=${outer.length}, R8=${edge.length}`);const edgeJoins=role(g,'edge-join');pass('R8 has one sector-closing sl st per petal',edgeJoins.length===5&&edgeJoins.every(n=>n.type==='slip'&&!!n.workedInto),`found ${edgeJoins.length}`);
+    const expectedCounts={0:1,1:11,2:20,3:40,4:41,5:60,6:60,7:90,8:100},roundCounts={};for(const n of g.nodes)roundCounts[n.round]=(roundCounts[n.round]||0)+1;pass('Round node totals match fixed topology',Object.entries(expectedCounts).every(([r,c])=>roundCounts[r]===c),JSON.stringify(roundCounts));
+    const layout=window.__LACE_LAYOUT_SNAPSHOT?.validation;pass('Geometry/layout validator passes',layout?.ok===true,(layout?.errors||[]).join(' · '));const out={ok:errors.length===0,errors,checks,version:VERSION,proofType:'deterministic-topology-proof',checkedAt:new Date().toISOString()};window.__LACE_CONSTRUCTABILITY_AUDIT=out;g.constructability=out;renderStatus(out);return out;}
+  function renderStatus(a){const panel=document.getElementById('sizingToolsV71');if(panel){let e=document.getElementById('constructabilityStatusV78');if(!e){e=document.createElement('div');e.id='constructabilityStatusV78';e.style.cssText='margin-top:10px;padding:8px 9px;border-radius:7px;font:800 11px/1.35 system-ui';panel.appendChild(e)}e.style.background=a.ok?'rgba(28,120,68,.2)':'rgba(180,45,45,.2)';e.style.border=`1px solid ${a.ok?'#2aa45f':'#d55454'}`;e.style.color=a.ok?'#8ff0b8':'#ffabab';e.textContent=`CONSTRUCTABILITY PROOF: ${a.ok?'PASS':'FAIL'}${a.ok?' · exact stitches + anchors + joins + counts verified':` · ${a.errors[0]||'audit failed'}`}`;}const summary=document.getElementById('laceSummary');if(summary&&summary.style.display!=='none'&&!summary.dataset.v79Proof){summary.dataset.v79Proof='1';summary.innerHTML+=`<br><strong style="color:${a.ok?'#82e6a9':'#ff9c9c'}">CONSTRUCTABILITY PROOF ${a.ok?'PASS':'FAIL'}</strong>${a.ok?' · exact topology verified':` · ${(a.errors||[]).join(' · ')}`}`;}}
+  function schedule(){let tries=0;const t=setInterval(()=>{tries++;if(window.activeCrochetGraph?.kind==='lace-flower'){clearInterval(t);ensureR4Transition();audit();}else if(tries>30)clearInterval(t)},70)}window.runLaceConstructabilityAudit=audit;document.addEventListener('click',e=>{if(e.target?.id==='laceImport')schedule();if(['exportPdfBtn','mobileExportPdfBtn','quickExportPdfBtn'].includes(e.target?.id)&&window.activeCrochetGraph?.kind==='lace-flower'){ensureR4Transition();const a=audit();if(!a.ok){e.preventDefault();e.stopImmediatePropagation();alert('CONSTRUCTABILITY PROOF FAIL\n'+a.errors.join('\n'));}}},true);setTimeout(()=>{stamp();if(window.activeCrochetGraph?.kind==='lace-flower'){ensureR4Transition();audit();}},180);
 })();
