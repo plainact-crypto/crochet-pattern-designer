@@ -1,10 +1,19 @@
 // Visible progress UX for the lace geometry/layout import pipeline.
 (()=>{
+  function loadScalePdfV73(){
+    if(document.querySelector('script[data-stitch-scale-v73]'))return;
+    const f=document.createElement('script');
+    f.src='stitch-scale-pdf-v7.3.js?v=20260815-1638v73';
+    f.dataset.stitchScaleV73='1';
+    document.head.appendChild(f);
+  }
   function loadScaleFixV72(){
-    if(document.querySelector('script[data-stitch-scale-v72]'))return;
+    if(document.querySelector('script[data-stitch-scale-v72]')){loadScalePdfV73();return;}
     const f=document.createElement('script');
     f.src='stitch-scale-fix-v7.2.js?v=20260815-1630v72';
     f.dataset.stitchScaleV72='1';
+    f.onload=loadScalePdfV73;
+    f.onerror=loadScalePdfV73;
     document.head.appendChild(f);
   }
   function loadSizingV71(){
