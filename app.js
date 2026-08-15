@@ -70,3 +70,7 @@ bindTap(placeBtn,place);bindTap(quickPlaceBtn,place);bindTap(newRowBtn,()=>nextR
 function touchDistance(touches){const a=touches[0],b=touches[1];return Math.hypot(b.clientX-a.clientX,b.clientY-a.clientY)}
 function touchMidpoint(touches){return{x:(touches[0].clientX+touches[1].clientX)/2,y:(touches[0].clientY+touches[1].clientY)/2}}
 boardWrap.addEventListener('touchstart',e=>{if(e.touches.length===2){pinchStartDistance=touchDistance(e.touches);pinchStartZoom=zoom;e.preventDefault()}},{passive:false});boardWrap.addEventListener('touchmove',e=>{if(e.touches.length===2&&pinchStartDistance){const mid=touchMidpoint(e.touches),ratio=touchDistance(e.touches)/pinchStartDistance;zoomAround(pinchStartZoom*ratio,mid.x,mid.y);e.preventDefault()}},{passive:false});boardWrap.addEventListener('touchend',e=>{if(e.touches.length<2)pinchStartDistance=null});board.addEventListener('click',()=>{selected=null;render()});window.addEventListener('resize',ensureBoardHeight);applyZoom(1);render();
+
+// Explicit diagnostic accessors. Keep board state owned by this module; diagnostics read it through functions.
+window.getCrochetBoardItems=()=>items;
+window.getCrochetBoardState=()=>({items,currentRow,currentCol,placementRotation,zoom});
