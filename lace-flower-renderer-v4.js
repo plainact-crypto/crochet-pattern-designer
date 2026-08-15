@@ -7,9 +7,6 @@ function loc(cx,cy,a,rr,t){const ux=Math.cos(a),uy=Math.sin(a),tx=-Math.sin(a),t
 function ori(i,cx,cy){i.rotation=Math.atan2(i.gridRow-cy,i.gridCol-cx)*180/Math.PI+90}
 function S(g,role,s){return g.filter(i=>i.role===role&&(s==null||i.sector===s)).sort((a,b)=>(a.orderInPath??0)-(b.orderInPath??0))}
 function put(arr,tpl,cx,cy,a){arr.forEach((i,k)=>{const [t,r]=tpl[k]||tpl[tpl.length-1],[c,y]=loc(cx,cy,a,r,t);set(i,c,y);ori(i,cx,cy)})}
-
-// Exact local-grid templates. Every template length matches the stitch count in the engine.
-// Rows read left shoulder -> tip -> right shoulder and remain nested inside the same sector.
 const T={
  innerC:[[-1,3],[0,4],[1,3]],
  innerP:[[-3,4],[-2,5],[-1,6],[0,7],[1,6],[2,5],[3,4]],
@@ -18,7 +15,17 @@ const T={
  outC:[[-5,8],[-4,9],[-3,10],[-2,11],[-1,12],[0,13],[1,12],[2,11],[3,10],[4,9],[5,8]],
  outP:[[-8,9],[-7,10],[-6,11],[-5,12],[-4,13],[-3,14],[-2,15],[-1,16],[0,18],[1,16],[2,15],[3,14],[4,13],[5,12],[6,11],[7,10],[8,9]]
 };
-
+function snapshot(g,cx,cy,validation){
+ const copy=g.map(i=>({id:i.id,type:i.type,role:i.role,round:i.round,sector:i.sector,order:i.orderInPath,workedInto:i.workedInto,gridCol:i.gridCol,gridRow:i.gridRow,rotation:i.rotation}));
+ const sectors={};
+ for(let s=1;s<=5;s++){
+   sectors[s]={};
+   for(const role of ['inner-chain','inner-petal-stitch','mid-chain','mid-petal-stitch','outer-chain','outer-petal-stitch','edge-sc']){
+     const a=copy.filter(i=>i.sector===s&&i.role===role);sectors[s][role]=a;
+   }
+ }
+ window.__LACE_LAYOUT_SNAPSHOT={renderer:'lace-flower-renderer-v4',createdAt:new Date().toISOString(),cellPx:CELL,center:{gridCol:cx,gridRow:cy},validation,nodes:copy,sectors,template:T};
+}
 function layout(list){
  const g=list.filter(i=>i?.generatedPattern&&i.patternKind==='lace-flower');if(!g.length)return{ok:true,errors:[]};
  const center=g.find(i=>i.role==='start');if(!center)return{ok:false,errors:['Missing center']};
@@ -39,20 +46,17 @@ function layout(list){
    edge.forEach(i=>{const b=map.get(i.workedInto);if(!b)return;let t=0;if(i.edgeBaseOrder===8)t=(i.edgeRepeat-1);set(i,b.gridCol+ux+tx*t,b.gridRow+uy+ty*t);ori(i,cx,cy)});
    j=g.find(i=>i.role==='edge-join'&&i.sector===s);if(j&&edge[0])set(j,edge[0].gridCol,edge[0].gridRow,edge[0].rotation||0);
  }
- const errors=[];
- for(const i of g)if(!Number.isInteger(i.gridCol)||!Number.isInteger(i.gridRow))errors.push('non-integer-grid');
- return{ok:!errors.length,errors};
+ const errors=[];for(const i of g)if(!Number.isInteger(i.gridCol)||!Number.isInteger(i.gridRow))errors.push('non-integer-grid');
+ const result={ok:!errors.length,errors};snapshot(g,cx,cy,result);return result;
 }
-
 function apply(){
  const els=[...board.querySelectorAll('.placed')];
  items.forEach((i,k)=>{
    if(!i?.generatedPattern||i.patternKind!=='lace-flower')return;
    const e=els[k];if(!e)return;
    const m=window.CROCHET_STITCH_METRICS?.[i.type]||{visualWidthPx:22,visualHeightPx:22};
-   e.style.left=`${i.gridCol*CELL}px`;e.style.top=`${i.gridRow*CELL}px`;
-   e.style.width=`${m.visualWidthPx}px`;e.style.height=`${m.visualHeightPx}px`;
-   e.style.transform=`translate(-50%,-50%) rotate(${i.rotation||0}deg)`;e.style.zIndex='3';
+   e.style.left=`${i.gridCol*CELL}px`;e.style.top=`${i.gridRow*CELL}px`;e.style.width=`${m.visualWidthPx}px`;e.style.height=`${m.visualHeightPx}px`;e.style.transform=`translate(-50%,-50%) rotate(${i.rotation||0}deg)`;e.style.zIndex='3';
+   e.dataset.itemId=i.id||'';e.dataset.type=i.type||'';e.dataset.role=i.role||'';e.dataset.round=String(i.round??'');e.dataset.sector=String(i.sector??'');e.dataset.gridCol=String(i.gridCol??'');e.dataset.gridRow=String(i.gridRow??'');
    const svg=e.querySelector('svg');if(svg){svg.setAttribute('width',m.visualWidthPx);svg.setAttribute('height',m.visualHeightPx);svg.style.width=`${m.visualWidthPx}px`;svg.style.height=`${m.visualHeightPx}px`;}
  });
  board.querySelectorAll('.path-guide,.crochet-topology-overlay,.crochet-semantic-overlay,.flower-v3-overlay').forEach(n=>n.remove());
