@@ -1,47 +1,13 @@
-// Visible progress UX for the lace geometry/layout import pipeline.
+// v7.6 visible progress UX + minimal sizing loader. Legacy scaling/visual loaders removed for performance.
 (()=>{
-  function loadScalePdfV73(){
-    if(document.querySelector('script[data-stitch-scale-v73]'))return;
-    const f=document.createElement('script');
-    f.src='stitch-scale-pdf-v7.3.js?v=20260815-1638v73';
-    f.dataset.stitchScaleV73='1';
-    document.head.appendChild(f);
-  }
-  function loadScaleFixV72(){
-    if(document.querySelector('script[data-stitch-scale-v72]')){loadScalePdfV73();return;}
-    const f=document.createElement('script');
-    f.src='stitch-scale-fix-v7.2.js?v=20260815-1630v72';
-    f.dataset.stitchScaleV72='1';
-    f.onload=loadScalePdfV73;
-    f.onerror=loadScalePdfV73;
-    document.head.appendChild(f);
-  }
-  function loadSizingV71(){
-    if(document.querySelector('script[data-pattern-sizing-v71]')){loadScaleFixV72();return;}
+  function loadSizing(){
+    if(document.querySelector('script[data-pattern-sizing-v71]'))return;
     const s=document.createElement('script');
-    s.src='pattern-sizing-v7.1.js?v=20260815-1622v71';
+    s.src='pattern-sizing-v7.1.js?v=20260815-1700v76';
     s.dataset.patternSizingV71='1';
-    s.onload=loadScaleFixV72;
-    s.onerror=loadScaleFixV72;
     document.head.appendChild(s);
   }
-  function loadGridTools(){
-    if(document.querySelector('script[data-grid-tools-v70]')){loadSizingV71();return;}
-    const tools=document.createElement('script');
-    tools.src='grid-tools-v7.0.js?v=20260815-1615v70';
-    tools.dataset.gridToolsV70='1';
-    tools.onload=loadSizingV71;
-    tools.onerror=loadSizingV71;
-    document.head.appendChild(tools);
-  }
-  if(!document.querySelector('script[data-lace-visual-v69]')){
-    const visual=document.createElement('script');
-    visual.src='lace-visual-v6.9.js?v=20260815-1604v69';
-    visual.dataset.laceVisualV69='1';
-    visual.onload=loadGridTools;
-    visual.onerror=loadGridTools;
-    document.head.appendChild(visual);
-  }else loadGridTools();
+  loadSizing();
 
   const $=id=>document.getElementById(id);
   function nextPaint(){return new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));}
@@ -65,21 +31,14 @@
       busy=true;btn.disabled=true;btn.textContent='VALIDATING LAYOUT…';
       try{
         await show(12,'1/6 · Preparing board geometry');
-        await new Promise(r=>setTimeout(r,40));
         await show(28,'2/6 · Building constrained sector candidates');
-        await new Promise(r=>setTimeout(r,40));
         await show(46,'3/6 · Preparing 5-sector symmetry solve');
-        await new Promise(r=>setTimeout(r,40));
-        await show(68,'4/6 · Solving constrained 24px grid…');
-        await nextPaint();
+        await show(68,'4/6 · Applying constrained 24px grid…');
         original.call(btn,e);
         const v=window.__LACE_LAYOUT_SNAPSHOT?.validation;
         await show(86,'5/6 · Checking collisions, clipping & sector bboxes');
-        await new Promise(r=>setTimeout(r,60));
         await show(96,'6/6 · Checking symmetry & final board fit');
-        await new Promise(r=>setTimeout(r,60));
-        if(v?.ok){await show(100,'6/6 · Layout validated — rendering complete');}
-        else {await show(100,'6/6 · Layout rejected — see validation reason below');}
+        await show(100,v?.ok?'6/6 · Layout validated — rendering complete':'6/6 · Layout rejected — see validation reason below');
       }catch(err){
         console.error('Lace import progress wrapper failed',err);
         if(msg){msg.className='form-message error';msg.textContent='LAYOUT REJECTED: '+(err?.message||String(err));}
@@ -90,7 +49,5 @@
     };
   }
   setTimeout(install,0);
-  document.addEventListener('click',e=>{
-    if(e.target?.id==='photoModeBtn'||e.target?.id==='mobilePhotoModeBtn'||e.target?.id==='laceGenerate')setTimeout(install,0);
-  },true);
+  document.addEventListener('click',e=>{if(['photoModeBtn','mobilePhotoModeBtn','laceGenerate'].includes(e.target?.id))setTimeout(install,0)},true);
 })();
