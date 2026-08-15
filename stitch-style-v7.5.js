@@ -1,17 +1,97 @@
-// v7.5 — open numeric stitch size + independent line weight. PDF syncs both.
+// v7.6 — fast open stitch-size + independent line-weight controls.
+// One CSS-variable update per interaction; no per-stitch loops and no MutationObserver.
 (()=>{
-  const VERSION='v7.5';
+  const VERSION='v7.6.2';
   const KEY='crochetCad.stitchStyleV75';
   let state={sizePct:100,linePct:100};
-  try{const s=JSON.parse(localStorage.getItem(KEY)||'{}');if(Number.isFinite(Number(s.sizePct)))state.sizePct=Math.max(1,Math.round(Number(s.sizePct)));if(Number.isFinite(Number(s.linePct)))state.linePct=Math.max(1,Math.round(Number(s.linePct)));}catch{}
+  try{
+    const s=JSON.parse(localStorage.getItem(KEY)||'{}');
+    if(Number.isFinite(Number(s.sizePct)))state.sizePct=Math.max(1,Math.round(Number(s.sizePct)));
+    if(Number.isFinite(Number(s.linePct)))state.linePct=Math.max(1,Math.round(Number(s.linePct)));
+  }catch{}
 
-  function save(){localStorage.setItem(KEY,JSON.stringify(state));window.__CROCHET_STITCH_SCALE=state.sizePct/100;window.__CROCHET_PDF_STITCH_SCALE=state.sizePct/100;window.__CROCHET_LINE_WEIGHT_SCALE=state.linePct/100;window.__CROCHET_PDF_LINE_WEIGHT_SCALE=state.linePct/100;}
-  function stamp(){window.__CROCHET_CAD_VERSION=VERSION;document.title=`Crochet Pattern Designer · ${VERSION}`;const b=document.querySelector('.brandcopy strong');if(b)b.textContent=`Crochet CAD  ${VERSION}`;const p=document.querySelector('#sizingToolsV71 > strong');if(p)p.textContent=`SIZE / GRID · ${VERSION}`;const h=document.querySelector('#photoModeModal .photo-card h2');if(h&&h.textContent.includes('5-PETAL'))h.textContent=`5-PETAL LAYERED LACE FLOWER · ${VERSION}`;}
-  function apply(){save();stamp();const size=state.sizePct/100,line=state.linePct/100;document.querySelectorAll('#board .placed[data-renderer] svg').forEach(svg=>{svg.style.setProperty('transform',`scale(${size})`,'important');svg.style.setProperty('transform-origin','50% 50%','important');svg.style.setProperty('transform-box','fill-box','important');svg.style.setProperty('overflow','visible','important');svg.style.setProperty('filter','none','important');svg.querySelectorAll('path,line,polyline,ellipse,circle').forEach(n=>{if(n.getAttribute('stroke')==='none')return;const base=Number(n.dataset.baseStrokeV75||n.getAttribute('stroke-width')||1);if(!n.dataset.baseStrokeV75)n.dataset.baseStrokeV75=String(base);n.style.setProperty('stroke-width',String(Math.max(.05,base*line)),'important');n.style.setProperty('stroke','#111','important');n.style.setProperty('vector-effect','non-scaling-stroke','important');});});syncUI();}
-  function syncUI(){const sn=document.getElementById('sizeNumberV75'),ss=document.getElementById('sizeSliderV75'),ln=document.getElementById('lineNumberV75'),ls=document.getElementById('lineSliderV75');if(sn&&document.activeElement!==sn)sn.value=state.sizePct;if(ss)ss.value=Math.min(500,state.sizePct);if(ln&&document.activeElement!==ln)ln.value=state.linePct;if(ls)ls.value=Math.min(300,state.linePct);}
   function positive(v,fallback){const n=Math.round(Number(v));return Number.isFinite(n)&&n>0?n:fallback;}
-  function install(){const panel=document.getElementById('sizingToolsV71');if(!panel)return false;const oldV74=panel.querySelector('.sizing-row[data-v74]');if(oldV74)oldV74.remove();const first=panel.querySelector('.sizing-row');if(first&&!first.dataset.keepV75)first.remove();if(document.getElementById('styleControlsV75')){stamp();apply();return true;}const box=document.createElement('div');box.id='styleControlsV75';box.innerHTML=`<div style="display:grid;grid-template-columns:1fr 80px auto;gap:7px;align-items:center;margin-top:8px"><span>Stitch size</span><input id="sizeNumberV75" type="number" min="1" step="1" value="${state.sizePct}" style="width:80px;text-align:right"><span>%</span><input id="sizeSliderV75" type="range" min="10" max="500" step="1" value="${Math.min(500,state.sizePct)}" style="grid-column:1/-1;width:100%"></div><div style="display:grid;grid-template-columns:1fr 80px auto;gap:7px;align-items:center;margin-top:10px"><span>Line weight</span><input id="lineNumberV75" type="number" min="1" step="1" value="${state.linePct}" style="width:80px;text-align:right"><span>%</span><input id="lineSliderV75" type="range" min="10" max="300" step="1" value="${Math.min(300,state.linePct)}" style="grid-column:1/-1;width:100%"></div><div style="font-size:10px;color:#aeb8c0;margin-top:7px">Size is open numeric: 100, 250, 500, 1000… Line weight is independent. PDF uses the same values.</div>`;const sizeRow=panel.querySelector('.sizing-row');if(sizeRow)panel.insertBefore(box,sizeRow);else panel.appendChild(box);
-    const sn=box.querySelector('#sizeNumberV75'),ss=box.querySelector('#sizeSliderV75'),ln=box.querySelector('#lineNumberV75'),ls=box.querySelector('#lineSliderV75');sn.oninput=e=>{if(e.target.value==='')return;state.sizePct=positive(e.target.value,state.sizePct);apply()};sn.onchange=sn.onblur=e=>{state.sizePct=positive(e.target.value,state.sizePct);e.target.value=state.sizePct;apply()};ss.oninput=e=>{state.sizePct=positive(e.target.value,state.sizePct);apply()};ln.oninput=e=>{if(e.target.value==='')return;state.linePct=positive(e.target.value,state.linePct);apply()};ln.onchange=ln.onblur=e=>{state.linePct=positive(e.target.value,state.linePct);e.target.value=state.linePct;apply()};ls.oninput=e=>{state.linePct=positive(e.target.value,state.linePct);apply()};apply();return true;}
-  function refresh(){if(!install())setTimeout(refresh,80)}
-  save();setTimeout(refresh,0);const wrap=document.getElementById('boardWrap');if(wrap)new MutationObserver(()=>setTimeout(refresh,0)).observe(wrap,{childList:true,subtree:true});const board=document.getElementById('board');if(board)new MutationObserver(()=>requestAnimationFrame(apply)).observe(board,{childList:true,subtree:true});document.addEventListener('click',e=>{if(['laceImport','laceGenerate','photoModeBtn','mobilePhotoModeBtn'].includes(e.target?.id))setTimeout(refresh,0)},true);
+  function save(){
+    try{localStorage.setItem(KEY,JSON.stringify(state));}catch{}
+    window.__CROCHET_STITCH_SCALE=state.sizePct/100;
+    window.__CROCHET_PDF_STITCH_SCALE=state.sizePct/100;
+    window.__CROCHET_LINE_WEIGHT_SCALE=state.linePct/100;
+    window.__CROCHET_PDF_LINE_WEIGHT_SCALE=state.linePct/100;
+  }
+  function stamp(){
+    window.__CROCHET_CAD_VERSION=VERSION;
+    document.title=`Crochet Pattern Designer · ${VERSION}`;
+    const b=document.querySelector('.brandcopy strong');if(b)b.textContent=`Crochet CAD ${VERSION}`;
+    const p=document.querySelector('#sizingToolsV71 > strong');if(p)p.textContent=`SIZE / GRID · ${VERSION}`;
+    const h=document.querySelector('#photoModeModal .photo-card h2');if(h&&h.textContent.includes('5-PETAL'))h.textContent=`5-PETAL LAYERED LACE FLOWER · ${VERSION}`;
+  }
+  function ensureCss(){
+    if(document.getElementById('stitchStyleFastV76'))return;
+    const s=document.createElement('style');s.id='stitchStyleFastV76';
+    s.textContent=`
+      #board .placed[data-renderer] svg{
+        transform:scale(var(--crochet-stitch-scale,1))!important;
+        transform-origin:50% 50%!important;
+        transform-box:fill-box!important;
+        overflow:visible!important;
+        filter:none!important;
+      }
+      #board .placed[data-renderer] svg path,
+      #board .placed[data-renderer] svg line,
+      #board .placed[data-renderer] svg polyline,
+      #board .placed[data-renderer] svg ellipse,
+      #board .placed[data-renderer] svg circle{
+        stroke-width:calc(var(--crochet-line-scale,1) * 1px)!important;
+        vector-effect:non-scaling-stroke!important;
+      }
+    `;
+    document.head.appendChild(s);
+  }
+  function applyFast(){
+    save();stamp();ensureCss();
+    const board=document.getElementById('board');if(board){
+      board.style.setProperty('--crochet-stitch-scale',String(state.sizePct/100));
+      board.style.setProperty('--crochet-line-scale',String(state.linePct/100));
+    }
+    syncUI();
+  }
+  function syncUI(){
+    const sn=document.getElementById('sizeNumberV76'),ss=document.getElementById('sizeSliderV76'),ln=document.getElementById('lineNumberV76'),ls=document.getElementById('lineSliderV76');
+    if(sn&&document.activeElement!==sn)sn.value=state.sizePct;
+    if(ss)ss.value=Math.min(1000,state.sizePct);
+    if(ln&&document.activeElement!==ln)ln.value=state.linePct;
+    if(ls)ls.value=Math.min(500,state.linePct);
+  }
+  function install(){
+    const panel=document.getElementById('sizingToolsV71');if(!panel)return false;
+    panel.querySelector('#styleControlsV75')?.remove();
+    panel.querySelector('.sizing-row[data-v74]')?.remove();
+    let box=document.getElementById('styleControlsV76');
+    if(!box){
+      box=document.createElement('div');box.id='styleControlsV76';
+      box.innerHTML=`
+        <div style="display:grid;grid-template-columns:1fr 86px auto;gap:7px;align-items:center;margin-top:8px">
+          <span>Stitch size</span><input id="sizeNumberV76" type="number" min="1" step="1" value="${state.sizePct}" style="width:86px;text-align:right"><span>%</span>
+          <input id="sizeSliderV76" type="range" min="10" max="1000" step="1" value="${Math.min(1000,state.sizePct)}" style="grid-column:1/-1;width:100%">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 86px auto;gap:7px;align-items:center;margin-top:10px">
+          <span>Line weight</span><input id="lineNumberV76" type="number" min="1" step="1" value="${state.linePct}" style="width:86px;text-align:right"><span>%</span>
+          <input id="lineSliderV76" type="range" min="10" max="500" step="1" value="${Math.min(500,state.linePct)}" style="grid-column:1/-1;width:100%">
+        </div>
+        <div style="font-size:10px;color:#aeb8c0;margin-top:7px">Numeric size is open: 100, 500, 1000, 2000… Size and line weight are independent. PDF uses the same values.</div>`;
+      const mount=panel.querySelector('#styleControlsMount');
+      if(mount)mount.replaceWith(box); else panel.insertBefore(box,panel.querySelector('[data-material-row]')||panel.firstChild?.nextSibling);
+      const sn=box.querySelector('#sizeNumberV76'),ss=box.querySelector('#sizeSliderV76'),ln=box.querySelector('#lineNumberV76'),ls=box.querySelector('#lineSliderV76');
+      sn.oninput=e=>{if(e.target.value==='')return;state.sizePct=positive(e.target.value,state.sizePct);applyFast();};
+      sn.onchange=sn.onblur=e=>{state.sizePct=positive(e.target.value,state.sizePct);e.target.value=state.sizePct;applyFast();};
+      ss.oninput=e=>{state.sizePct=positive(e.target.value,state.sizePct);applyFast();};
+      ln.oninput=e=>{if(e.target.value==='')return;state.linePct=positive(e.target.value,state.linePct);applyFast();};
+      ln.onchange=ln.onblur=e=>{state.linePct=positive(e.target.value,state.linePct);e.target.value=state.linePct;applyFast();};
+      ls.oninput=e=>{state.linePct=positive(e.target.value,state.linePct);applyFast();};
+    }
+    applyFast();return true;
+  }
+  function refresh(){if(!install())setTimeout(refresh,60);else applyFast();}
+  save();ensureCss();setTimeout(refresh,0);
+  document.addEventListener('click',e=>{if(['laceImport','laceGenerate','photoModeBtn','mobilePhotoModeBtn'].includes(e.target?.id))setTimeout(refresh,0)},true);
 })();
