@@ -8,7 +8,8 @@
     bobble:{name:'Bobble',abbr:'bo'}, cluster:{name:'Cluster',abbr:'cl'}, shell:{name:'Shell',abbr:'sh'}, ring:{name:'Magic Ring',abbr:'MR'}
   };
 
-  // Phase 1: every symbol owns exactly one grid cell. The visual mark may rotate, but its center never leaves the grid point.
+  // Every generated symbol center is locked to an integer grid point.
+  // anchorOffsetY describes the symbol's crochet "foot" in its own unrotated local coordinates.
   const metrics = {};
   for (const type of Object.keys(standard)) {
     metrics[type] = {
@@ -17,15 +18,24 @@
       cellHeight:1,
       centerX:.5,
       centerY:.5,
-      anchorX:.5,
-      anchorY:.5,
       visualSizePx:22,
-      gridCellPx:CELL
+      gridCellPx:CELL,
+      anchorOffsetX:0,
+      anchorOffsetY:0
     };
   }
   metrics.ring.visualSizePx=24;
-  metrics.slip.visualSizePx=16;
+  metrics.slip.visualSizePx=14;
   metrics.chain.visualSizePx=20;
+  metrics.single.anchorOffsetY=5.5;
+  metrics.half.anchorOffsetY=9;
+  metrics.double.anchorOffsetY=9.5;
+  metrics.treble.anchorOffsetY=10;
+  metrics.dtr.anchorOffsetY=10;
+  metrics.picot.anchorOffsetY=8;
+  metrics.puff.anchorOffsetY=9;
+  metrics.cluster.anchorOffsetY=9;
+  metrics.shell.anchorOffsetY=9;
 
   if(Array.isArray(defs)) for(const d of defs){const s=standard[d.id];if(s){d.name=s.name;d.abbr=s.abbr;}}
   stitchAbbr = function(type){return standard[type]?.abbr || type;};
@@ -64,6 +74,49 @@
     return {ok:!errors.length,errors};
   }
 
+  function footPoint(it){
+    const m=metrics[it.type]||metrics.single;
+    const a=((it.rotation||0)*Math.PI)/180;
+    const ox=m.anchorOffsetX||0, oy=m.anchorOffsetY||0;
+    return {
+      x:it.gridCol*CELL + ox*Math.cos(a)-oy*Math.sin(a),
+      y:it.gridRow*CELL + ox*Math.sin(a)+oy*Math.cos(a)
+    };
+  }
+
+  function centerPoint(it){return{x:it.gridCol*CELL,y:it.gridRow*CELL};}
+
+  function drawSemanticConnections(){
+    if(!Array.isArray(items)||!items.some(i=>i.generatedPattern)) return;
+    board.querySelectorAll('.crochet-topology-overlay,.crochet-semantic-overlay').forEach(n=>n.remove());
+    const generated=items.filter(i=>i.generatedPattern), byId=new Map(generated.map(i=>[i.id,i]));
+    const ns='http://www.w3.org/2000/svg';
+    const svg=document.createElementNS(ns,'svg');
+    svg.setAttribute('class','crochet-semantic-overlay');
+    svg.style.cssText='position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:1';
+
+    const addLine=(a,b,opacity=.5,width=1)=>{
+      const line=document.createElementNS(ns,'line');
+      line.setAttribute('x1',a.x);line.setAttribute('y1',a.y);line.setAttribute('x2',b.x);line.setAttribute('y2',b.y);
+      line.setAttribute('stroke','#a8b1bb');line.setAttribute('stroke-width',width);line.setAttribute('stroke-linecap','round');line.setAttribute('opacity',opacity);
+      svg.appendChild(line);
+    };
+
+    for(const it of generated){
+      if(!it.visualAnchor) continue;
+      const target=byId.get(it.visualAnchor); if(!target) continue;
+      const targetPoint=centerPoint(target);
+      if(it.type==='chain'){
+        addLine(centerPoint(it),targetPoint,.34,.9);
+      }else if(it.type==='slip'){
+        // sl st sits on the target anchor; no extra spoke is needed.
+      }else{
+        addLine(footPoint(it),targetPoint,it.role==='petal-stitch'?.72:.46,it.role==='petal-stitch'?1.25:1);
+      }
+    }
+    board.insertBefore(svg,board.firstChild);
+  }
+
   if(typeof buildEnglishWrittenPattern==='function'){
     const legacyWritten = buildEnglishWrittenPattern;
     buildEnglishWrittenPattern = function(){
@@ -91,9 +144,11 @@
         el.style.top=(it.gridRow*CELL)+'px';
         el.style.width=CELL+'px';
         el.style.height=CELL+'px';
+        el.style.zIndex='3';
         const svg=el.querySelector('svg');
         if(svg){svg.setAttribute('width',m.visualSizePx);svg.setAttribute('height',m.visualSizePx);svg.style.display='block';}
       });
+      drawSemanticConnections();
       const check=validateGeneratedGrid(items);
       board.dataset.generatedGridValid=check.ok?'true':'false';
       if(!check.ok) console.error('Generated grid validation failed',check.errors);
