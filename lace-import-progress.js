@@ -1,11 +1,10 @@
 // Visible progress UX for the lace geometry/layout import pipeline.
 (()=>{
-  // v6.8 visual readability layer is loaded here so existing deployments only need
-  // this already-referenced file to change; geometry remains v6.7 underneath.
-  if(!document.querySelector('script[data-lace-visual-v68]')){
+  // v6.9 visual readability layer; geometry remains v6.7 underneath.
+  if(!document.querySelector('script[data-lace-visual-v69]')){
     const visual=document.createElement('script');
-    visual.src='lace-visual-v6.8.js?v=20260815-1558v68';
-    visual.dataset.laceVisualV68='1';
+    visual.src='lace-visual-v6.9.js?v=20260815-1604v69';
+    visual.dataset.laceVisualV69='1';
     document.head.appendChild(visual);
   }
 
