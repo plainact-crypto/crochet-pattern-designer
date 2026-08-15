@@ -1,13 +1,19 @@
 // Visible progress UX for the lace geometry/layout import pipeline.
 (()=>{
-  // v6.9 visual readability layer; geometry remains v6.7 underneath.
-  // v7.0 grid tools are loaded after the visual layer so the visible app version
-  // and insertion-point scaling controls remain authoritative.
+  function loadSizingV71(){
+    if(document.querySelector('script[data-pattern-sizing-v71]'))return;
+    const s=document.createElement('script');
+    s.src='pattern-sizing-v7.1.js?v=20260815-1622v71';
+    s.dataset.patternSizingV71='1';
+    document.head.appendChild(s);
+  }
   function loadGridTools(){
-    if(document.querySelector('script[data-grid-tools-v70]'))return;
+    if(document.querySelector('script[data-grid-tools-v70]')){loadSizingV71();return;}
     const tools=document.createElement('script');
     tools.src='grid-tools-v7.0.js?v=20260815-1615v70';
     tools.dataset.gridToolsV70='1';
+    tools.onload=loadSizingV71;
+    tools.onerror=loadSizingV71;
     document.head.appendChild(tools);
   }
   if(!document.querySelector('script[data-lace-visual-v69]')){
