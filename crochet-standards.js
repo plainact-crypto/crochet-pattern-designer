@@ -163,4 +163,9 @@
   window.CROCHET_US_STANDARD=standard;
   window.normalizeGeneratedCrochetItem=normalizeGeneratedItem;
   window.validateGeneratedCrochetGrid=validateGeneratedGrid;
+
+  // Load the strict flower layout last so it owns final generated-flower placement.
+  const strict=document.createElement('script');
+  strict.src='generated-flower-grid.js?v=20260815-1242';
+  document.body.appendChild(strict);
 })();
