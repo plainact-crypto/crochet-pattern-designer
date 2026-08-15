@@ -1,10 +1,19 @@
 // Visible progress UX for the lace geometry/layout import pipeline.
 (()=>{
+  function loadScaleFixV72(){
+    if(document.querySelector('script[data-stitch-scale-v72]'))return;
+    const f=document.createElement('script');
+    f.src='stitch-scale-fix-v7.2.js?v=20260815-1630v72';
+    f.dataset.stitchScaleV72='1';
+    document.head.appendChild(f);
+  }
   function loadSizingV71(){
-    if(document.querySelector('script[data-pattern-sizing-v71]'))return;
+    if(document.querySelector('script[data-pattern-sizing-v71]')){loadScaleFixV72();return;}
     const s=document.createElement('script');
     s.src='pattern-sizing-v7.1.js?v=20260815-1622v71';
     s.dataset.patternSizingV71='1';
+    s.onload=loadScaleFixV72;
+    s.onerror=loadScaleFixV72;
     document.head.appendChild(s);
   }
   function loadGridTools(){
