@@ -13,41 +13,52 @@
     const gen=list.filter(i=>i?.generatedPattern&&i.patternKind==='lace-flower');if(!gen.length)return{ok:true,errors:[]};
     const center=gen.find(i=>i.role==='start');if(!center)return{ok:false,errors:['Missing center']};
     const cx=46,cy=24;set(center,cx,cy,0);
-    const centerSc=byRole(gen,'center-sc').sort((a,b)=>(a.orderInPath??a.col??0)-(b.orderInPath??b.col??0));
+    const centerSc=byRole(gen,'center-sc').sort((a,b)=>(a.centerIndex??a.orderInPath??0)-(b.centerIndex??b.orderInPath??0));
     centerSc.forEach((it,i)=>{const a=aFor(i,10),q=polar(cx,cy,2.4,a);set(it,q.c,q.r,a*180/Math.PI+90)});
     const nodeMap=new Map(gen.map(i=>[i.id,i]));
     const sectorAxis=s=>aFor(s-1,5);
-    // R2: ch-5 arches curve outward between alternating center anchors.
+
+    const r1Join=gen.find(i=>i.role==='r1-join');
+    if(r1Join&&centerSc[0])set(r1Join,centerSc[0].gridCol,centerSc[0].gridRow,centerSc[0].rotation||0);
+
+    // R2: ch-5 arches curve outward between alternating center anchors; each arch ends on the next even anchor.
     for(let s=1;s<=5;s++){
       const chains=gen.filter(i=>i.role==='inner-chain'&&i.sector===s).sort((a,b)=>a.orderInPath-b.orderInPath);
       const axis=sectorAxis(s),span=.62;
       chains.forEach((ch,k)=>{const t=(k+1)/(chains.length+1),u=(t-.5)*2,a=axis+u*span,r=4.0+Math.cos(u*Math.PI/2)*1.2,q=polar(cx,cy,r,a);set(ch,q.c,q.r,a*180/Math.PI+90)});
+      const join=gen.find(i=>i.role==='inner-arch-join'&&i.sector===s);
+      const target=centerSc[(s*2)%10];
+      if(join&&target)set(join,target.gridCol,target.gridRow,target.rotation||0);
     }
+
     // R3: inner petal stitches make a compact pointed sector.
     for(let s=1;s<=5;s++){
       const pet=gen.filter(i=>i.role==='inner-petal-stitch'&&i.sector===s).sort((a,b)=>a.orderInPath-b.orderInPath),axis=sectorAxis(s);
       pet.forEach((it,k)=>{const u=pet.length===1?0:(k/(pet.length-1)-.5)*2,a=axis+u*.43,r=5.8+(1-Math.abs(u))*2.8,q=polar(cx,cy,r,a);set(it,q.c,q.r);orient(it,cx,cy)});
-      const j=gen.find(i=>i.role==='inner-petal-join'&&i.sector===s);if(j){const q=polar(cx,cy,4.2,axis+.56);set(j,q.c,q.r,0)}
+      const j=gen.find(i=>i.role==='inner-petal-join'&&i.sector===s);if(j){const target=centerSc[(s*2)%10];if(target)set(j,target.gridCol,target.gridRow,target.rotation||0)}
     }
-    // R4: broad ch-9 arches sit behind the inner petals.
+
+    // R4: broad ch-9 arches sit behind the inner petals and end on the next unused R1 sc.
     for(let s=1;s<=5;s++){
       const chains=gen.filter(i=>i.role==='outer-chain'&&i.sector===s).sort((a,b)=>a.orderInPath-b.orderInPath),axis=sectorAxis(s);
       chains.forEach((ch,k)=>{const t=(k+1)/(chains.length+1),u=(t-.5)*2,a=axis+u*.56,r=9.1+Math.cos(u*Math.PI/2)*1.8,q=polar(cx,cy,r,a);set(ch,q.c,q.r,a*180/Math.PI+90)});
-      const j=gen.find(i=>i.role==='outer-arch-join'&&i.sector===s);if(j){const q=polar(cx,cy,8.2,axis+.62);set(j,q.c,q.r,0)}
+      const j=gen.find(i=>i.role==='outer-arch-join'&&i.sector===s),target=centerSc[((s*2+1)%10)];if(j&&target)set(j,target.gridCol,target.gridRow,target.rotation||0)
     }
-    // R5: large pointed petals. Short stitches stay on the shoulders, tr stitches form the tip.
+
+    // R5: large pointed petals. Short stitches stay on shoulders; treble stitches form the tip.
     for(let s=1;s<=5;s++){
       const pet=gen.filter(i=>i.role==='outer-petal-stitch'&&i.sector===s).sort((a,b)=>a.orderInPath-b.orderInPath),axis=sectorAxis(s);
       pet.forEach((it,k)=>{const u=pet.length===1?0:(k/(pet.length-1)-.5)*2,a=axis+u*.47;let rise=(1-Math.abs(u));rise=1-Math.pow(1-rise,1.35);const r=10.2+rise*5.1,q=polar(cx,cy,r,a);set(it,q.c,q.r);orient(it,cx,cy)});
-      const j=gen.find(i=>i.role==='outer-petal-join'&&i.sector===s);if(j){const q=polar(cx,cy,9.1,axis+.58);set(j,q.c,q.r,0)}
+      const j=gen.find(i=>i.role==='outer-petal-join'&&i.sector===s),target=centerSc[((s*2+1)%10)];if(j&&target)set(j,target.gridCol,target.gridRow,target.rotation||0)
     }
-    // R6: edge stitches follow their exact R5 parent stitch, one cell outward. The center tip gets 3 sc spread tangentially.
+
+    // R6: edge stitches follow their exact R5 parent stitch; center tip gets 3 sc spread tangentially.
     for(let s=1;s<=5;s++){
       const edge=gen.filter(i=>i.role==='edge-sc'&&i.sector===s).sort((a,b)=>a.orderInPath-b.orderInPath),axis=sectorAxis(s),tx=-Math.sin(axis),ty=Math.cos(axis);
       edge.forEach(it=>{const base=nodeMap.get(it.workedInto);if(!base)return;const dx=base.gridCol-cx,dy=base.gridRow-cy,L=Math.hypot(dx,dy)||1,ox=dx/L,oy=dy/L;let tang=0;if(it.edgeBaseOrder===6)tang=(it.edgeRepeat-1)*.85;set(it,base.gridCol+ox*1.15+tx*tang,base.gridRow+oy*1.15+ty*tang);orient(it,cx,cy)});
       const j=gen.find(i=>i.role==='edge-join'&&i.sector===s);if(j){const first=edge[0];if(first)set(j,first.gridCol,first.gridRow,first.rotation||0)}
     }
-    // Resolve accidental snap collisions locally without leaving the integer grid.
+
     const occupied=new Map(),errors=[];
     for(const it of gen){
       if(!Number.isInteger(it.gridCol)||!Number.isInteger(it.gridRow)){errors.push(`${it.id}: non integer`);continue}
