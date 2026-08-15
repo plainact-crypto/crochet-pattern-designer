@@ -74,17 +74,16 @@
     const P=params.petals;
     const nodes=[]; const spaces=[];
     const center=stitch('ring',{round:0,group:'center',order:0,role:'start',anchor:null,relation:'start'}); nodes.push(center);
-    let prev=center.id;
-    // Round 1: [sc, ch 3] around. One sc + one ch-3 space per petal.
     for(let p=0;p<P;p++){
       const sc=stitch('single',{round:1,group:`anchor-${p+1}`,order:p*4,role:'petal-anchor',workedInto:center.id,relation:'into-MR'}); nodes.push(sc);
       let chainPrev=sc.id; const chainIds=[];
       for(let c=0;c<3;c++){
         const ch=stitch('chain',{round:1,group:`space-${p+1}`,order:p*4+c+1,role:'chain-space',anchor:chainPrev,relation:'chain-from'}); nodes.push(ch); chainIds.push(ch.id); chainPrev=ch.id;
       }
-      spaces.push({id:`space-${p+1}`,petal:p+1,chainIds,anchorStitch:sc.id}); prev=chainPrev;
+      spaces.push({id:`space-${p+1}`,petal:p+1,chainIds,anchorStitch:sc.id});
     }
-    const join=stitch('slip',{round:1,group:'round-1-join',order:P*4,role:'join',workedInto:nodes.find(n=>n.round===1&&n.type==='single')?.id,relation:'join-round'}); nodes.push(join);
+    const firstSc=nodes.find(n=>n.round===1&&n.type==='single');
+    nodes.push(stitch('slip',{round:1,group:'round-1-join',order:P*4,role:'join',workedInto:firstSc?.id,relation:'join-round'}));
 
     const seq=petalSequence(params.size,params.style);
     for(let p=0;p<P;p++){
@@ -92,7 +91,7 @@
       seq.forEach((type,j)=>nodes.push(stitch(type,{round:2,group:`petal-${p+1}`,order:j,role:'petal-stitch',workedInto:space.id,relation:'into-chain-space',petal:p+1})));
       if(p<P-1) nodes.push(stitch('slip',{round:2,group:`petal-${p+1}`,order:seq.length,role:'petal-separator',workedInto:spaces[(p+1)%P].anchorStitch,relation:'between-petals',petal:p+1}));
     }
-    const finalJoin=stitch('slip',{round:2,group:'final-join',order:999,role:'finish',workedInto:spaces[0].anchorStitch,relation:'join-finish'}); nodes.push(finalJoin);
+    nodes.push(stitch('slip',{round:2,group:'final-join',order:999,role:'finish',workedInto:spaces[0].anchorStitch,relation:'join-finish'}));
     return {kind:'flower',version:1,params,nodes,spaces};
   }
 
@@ -111,6 +110,8 @@
       const petal=g.nodes.filter(n=>n.group===`petal-${p}`&&n.role==='petal-stitch');
       if(!petal.length) errors.push(`Petal ${p} has no stitches.`);
       const target=`space-${p}`; if(petal.some(n=>n.workedInto!==target)) errors.push(`Petal ${p} is not consistently worked into ${target}.`);
+      const expected=petalSequence(g.params.size,g.params.style).length;
+      if(petal.length!==expected) errors.push(`Petal ${p} has ${petal.length} stitches; expected ${expected}.`);
     }
     const r1=g.nodes.filter(n=>n.round===1); const r2=g.nodes.filter(n=>n.round===2);
     if(!r1.some(n=>n.role==='join')) errors.push('Round 1 has no closing slip stitch.');
@@ -131,9 +132,9 @@
     ].join('\n');
   }
 
-  function radialPoint(cx,cy,r,a){return{x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r};}
   function graphToBoard(g){
-    const bw=Math.max(board.clientWidth||1800,900),cx=50,cy=520;
+    const bw=Math.max(board.clientWidth||1200,900),cxPct=50,cy=520;
+    const point=(radiusPx,a)=>({x:cxPct+(Math.cos(a)*radiusPx/bw*100),y:cy+Math.sin(a)*radiusPx});
     const out=[]; let row=0;
     const add=(n,xPct,y,rotation,pathId,order)=>out.push({
       id:n.id,type:n.type,row,col:order,x:xPct,y,rotation,direction:'e',
@@ -141,16 +142,16 @@
       stitchFamily:n.type,workedInto:n.workedInto||n.anchor||null,relation:n.relation,role:n.role,
       round:n.round,petal:n.petal||null,confidence:1,estimated:false
     });
-    const center=g.nodes.find(n=>n.type==='ring'); add(center,cx,cy,0,'CENTER',0); row++;
+    const center=g.nodes.find(n=>n.type==='ring'); add(center,cxPct,cy,0,'CENTER',0); row++;
     const P=g.params.petals;
     for(let p=0;p<P;p++){
       const a=-Math.PI/2+p*2*Math.PI/P;
       const sc=g.nodes.find(n=>n.group===`anchor-${p+1}`&&n.type==='single');
-      const base=radialPoint(cx,cy,90,a); add(sc,base.x,base.y,(a*180/Math.PI)+90,'R1',p*4);
+      const base=point(90,a); add(sc,base.x,base.y,(a*180/Math.PI)+90,'R1',p*4);
       const chainNodes=g.nodes.filter(n=>n.group===`space-${p+1}`&&n.type==='chain');
-      chainNodes.forEach((n,c)=>{const q=radialPoint(cx,cy,100+c*13,a+(c-1)*0.055);add(n,q.x,q.y,(a*180/Math.PI)+90,'R1',p*4+c+1)});
+      chainNodes.forEach((n,c)=>{const q=point(100+c*13,a+(c-1)*0.055);add(n,q.x,q.y,(a*180/Math.PI)+90,'R1',p*4+c+1)});
     }
-    const join=g.nodes.find(n=>n.role==='join'); if(join)add(join,radialPoint(cx,cy,88,-Math.PI/2).x,radialPoint(cx,cy,88,-Math.PI/2).y,0,'R1',P*4);
+    const join=g.nodes.find(n=>n.role==='join'); if(join){const q=point(88,-Math.PI/2);add(join,q.x,q.y,0,'R1',P*4)}
     row++;
     const height={single:125,chain:145,half:150,double:175,treble:205,slip:115};
     for(let p=0;p<P;p++){
@@ -159,14 +160,14 @@
       const span=Math.min(.48,Math.max(.22,1.8/P));
       petal.forEach((n,j)=>{
         const t=petal.length===1?0:(j/(petal.length-1)-.5)*2;
-        const aa=a+t*span; const r=height[n.type]||155; const q=radialPoint(cx,cy,r,aa);
+        const aa=a+t*span; const r=height[n.type]||155; const q=point(r,aa);
         add(n,q.x,q.y,(aa*180/Math.PI)+90,`P${p+1}`,j);
       });
       const sep=g.nodes.find(n=>n.group===`petal-${p+1}`&&n.role==='petal-separator');
-      if(sep){const q=radialPoint(cx,cy,112,a+Math.PI/P);add(sep,q.x,q.y,0,`P${p+1}`,petal.length)};
+      if(sep){const q=point(112,a+Math.PI/P);add(sep,q.x,q.y,0,`P${p+1}`,petal.length)}
       row++;
     }
-    const finish=g.nodes.find(n=>n.role==='finish'); if(finish){const q=radialPoint(cx,cy,112,-Math.PI/2);add(finish,q.x,q.y,0,'FINISH',0)};
+    const finish=g.nodes.find(n=>n.role==='finish'); if(finish){const q=point(112,-Math.PI/2);add(finish,q.x,q.y,0,'FINISH',0)}
     return out;
   }
 
