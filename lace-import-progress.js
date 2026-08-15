@@ -1,5 +1,14 @@
 // Visible progress UX for the lace geometry/layout import pipeline.
 (()=>{
+  // v6.8 visual readability layer is loaded here so existing deployments only need
+  // this already-referenced file to change; geometry remains v6.7 underneath.
+  if(!document.querySelector('script[data-lace-visual-v68]')){
+    const visual=document.createElement('script');
+    visual.src='lace-visual-v6.8.js?v=20260815-1558v68';
+    visual.dataset.laceVisualV68='1';
+    document.head.appendChild(visual);
+  }
+
   const $=id=>document.getElementById(id);
   function nextPaint(){return new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));}
   function install(){
@@ -28,8 +37,6 @@
         await show(46,'3/6 · Preparing 5-sector symmetry solve');
         await new Promise(r=>setTimeout(r,40));
         await show(68,'4/6 · Solving constrained 24px grid…');
-        // Yield twice so the 68% state is visibly painted before the synchronous
-        // global solver runs. This prevents the UI from looking dead/frozen.
         await nextPaint();
         original.call(btn,e);
         const v=window.__LACE_LAYOUT_SNAPSHOT?.validation;
