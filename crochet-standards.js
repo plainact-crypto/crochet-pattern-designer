@@ -26,11 +26,13 @@
     const legacyRender=render;
     render=function(){
       legacyRender();
-      if(Array.isArray(items)&&items.some(i=>i.generatedPattern)){
-        board.querySelectorAll('.path-guide').forEach(n=>n.remove());
-      }
+      if(Array.isArray(items)&&items.some(i=>i.generatedPattern)) board.querySelectorAll('.path-guide').forEach(n=>n.remove());
     };
   }
+
+  // Lacy flower sequencing needs its own chain-from graph semantics. Keep it unavailable until that validator is shipped.
+  const lacy=document.querySelector('#genStyle option[value="lacy"]');
+  if(lacy){lacy.disabled=true;lacy.textContent='Lacy — coming next';}
 
   window.CROCHET_US_STANDARD = standard;
 })();
