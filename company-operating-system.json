@@ -1,0 +1,31 @@
+{
+  "company": "Crochet Profit Company",
+  "mission": "User design intent -> validated crochet construction -> executable pattern -> professional PDF -> paid value",
+  "status": "active",
+  "operating_file_version": 1,
+  "updated_at": "2026-08-16T22:38:00+03:00",
+  "current_stage": "pre-product / correctness architecture",
+  "current_bottleneck": "Generators must emit proof contracts consumed by the generic Pattern Core so crochet construction can be verified mathematically and structurally before rendering/PDF.",
+  "product_truth": {
+    "verified_arbitrary_crochet": false,
+    "support_policy": ["VERIFIED", "BETA", "UNSUPPORTED"],
+    "renderer_is_source_of_truth": false,
+    "validated_pattern_ir_is_source_of_truth": true
+  },
+  "recent_execution": [
+    "Added generic crochet Pattern IR validator",
+    "Loaded domain-first Pattern Core before generators",
+    "Gated lace constructability through generic Pattern Core",
+    "Added stitch-math proof contracts",
+    "Added executable stitch-math validator tests"
+  ],
+  "next_actions": [
+    "Make generators emit coverageContracts/consumes/produces from crochet construction logic",
+    "Expand executable validation fixtures across construction families",
+    "Compile written instructions and PDF only from validated Pattern IR",
+    "Do not scale acquisition before outputs are trustworthy"
+  ],
+  "revenue_status": "no verified revenue",
+  "owner_escalations": [],
+  "run_log": []
+}
