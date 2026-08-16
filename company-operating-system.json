@@ -2,10 +2,10 @@
   "company": "Crochet Profit Company",
   "mission": "User design intent -> validated crochet construction -> executable pattern -> professional PDF -> paid value",
   "status": "active",
-  "operating_file_version": 4,
-  "updated_at": "2026-08-17T01:08:00+03:00",
+  "operating_file_version": 5,
+  "updated_at": "2026-08-17T02:03:50+03:00",
   "current_stage": "pre-product / correctness architecture",
-  "current_bottleneck": "Integrate the new generic chain-space/repeat validator into the browser Pattern Core validation path, then make written instructions and PDF compile from the validated Pattern IR.",
+  "current_bottleneck": "Execute generic space-coverage negative fixtures in an independent runtime, then compile written instructions and PDF from the validated Pattern IR rather than independent handwritten/export logic.",
   "product_truth": {
     "verified_arbitrary_crochet": false,
     "support_policy": ["VERIFIED", "BETA", "UNSUPPORTED"],
@@ -13,58 +13,42 @@
     "validated_pattern_ir_is_source_of_truth": true
   },
   "recent_execution": [
-    "Added generic crochet Pattern IR validator",
-    "Loaded domain-first Pattern Core before generators",
-    "Gated lace constructability through generic Pattern Core",
-    "Added stitch-math proof contracts and executable validator tests",
-    "Added executable R8 construction proof: 85 R7 base stitches -> 95 R8 sc, +10 net increase, full base coverage, max multiplicity 3, no outside-base consumption",
-    "R8 edge stitches emit consumes/produces/countsAsStitch proof data before validation",
-    "Added machine-checkable chain-space/repeat proof for R3, R5 and R7: exactly five base chain spaces, five repeats, fixed body count per space, exact counted output and no outside-base space consumption",
-    "R3/R5/R7 petal stitches emit consumes/produces/countsAsStitch proof data from construction logic",
-    "Extracted chain-space/repeat proof into design-family-agnostic product module pattern-space-coverage-v1.js",
-    "Added negative fixtures for missing repeat-body stitch, unconsumed base chain-space and outside-base-space consumption"
+    "Added generic crochet Pattern IR validator and stitch-math coverage contracts",
+    "Added R8 proof: 85 R7 base stitches -> 95 R8 sc, +10 net increase, full base coverage, max multiplicity 3",
+    "Added generic chain-space/repeat proof contracts for R3/R5/R7 and negative fixtures",
+    "Loaded pattern-space-coverage-v1.js in the browser before the lace engine/constructability layer",
+    "Removed the duplicate lace-local space validator from the export gate; constructability now requires window.validateCrochetSpaceCoverageContracts from the reusable generic module",
+    "Export remains blocked when either generic Pattern Core or generic space/repeat proof fails"
   ],
   "evidence": {
-    "latest_commit": "1eb89ecee095fb2b5b230e732ff2533d5ed32642",
+    "latest_commit": "e4035439add47de80422cb1d2f9015bdcfce8f31",
+    "browser_loader_commit": "3f3ffe961b6879b05886cec998fbe2f9447078e0",
+    "generic_space_gate_commit": "e4035439add47de80422cb1d2f9015bdcfce8f31",
     "generic_space_validator_commit": "228db752241ed1ca7cc5bf471ab17a2aaff3a93f",
     "negative_fixture_commit": "1eb89ecee095fb2b5b230e732ff2533d5ed32642",
-    "proof_scope": "generic chain-space/repeat contract module plus lace-flower R3/R5/R7 proof data and R8 stitch-to-stitch shaping",
+    "proof_scope": "generic browser-loaded chain-space/repeat proof for R3/R5/R7 plus generic Pattern Core stitch-to-stitch shaping proof for R8",
     "space_repeat_proof": {
       "R3": "5 R2 chain spaces -> 5 repeats -> 5*(innerDc+4) counted body stitches",
       "R5": "5 R4 chain spaces -> 5 repeats -> 55 counted body stitches",
       "R7": "5 R6 chain spaces -> 5 repeats -> 85 counted body stitches"
     },
     "r8_proof": {"base":85,"output":95,"delta":10},
-    "test_status": "negative fixtures committed; execution not independently verified in this run",
+    "test_status": "generic validator is now in the real browser/export validation path; negative fixtures still require independent execution evidence",
     "revenue": "no verified revenue"
   },
   "next_actions": [
-    "Load/integrate pattern-space-coverage-v1.js into the browser Pattern Core path and make constructability consume the generic result instead of its lace-local validator",
-    "Execute the negative fixtures in CI/local runtime and record evidence",
-    "Compile written instructions from validated Pattern IR instead of independent handwritten text",
-    "Compile PDF only from validated Pattern IR",
+    "Execute the generic space-coverage negative fixtures in CI/local runtime and record evidence",
+    "Define an instruction compiler that reads only validated Pattern IR/proof data",
+    "Make guided written instructions consume that compiler output",
+    "Make PDF export consume the same validated instruction/chart source",
     "Do not scale acquisition before outputs are trustworthy"
   ],
   "revenue_status": "no verified revenue",
   "owner_escalations": [],
   "run_log": [
-    {
-      "at": "2026-08-16T23:05:00+03:00",
-      "result": "Implemented first generator-side machine-checkable shaping proof for lace R8 and made constructability require Pattern Core to accept it.",
-      "commit": "b28f3fca7273feeeb6031d508022fadf3ded4ee7",
-      "owner_action_required": false
-    },
-    {
-      "at": "2026-08-17T00:20:00+03:00",
-      "result": "Extended construction proof to chain-space-fed repeat rounds R3/R5/R7; each petal body now proves exact space consumption, repeat closure and counted output before export can pass constructability.",
-      "commit": "b81f948da23898ac880dea44854a0fed47607d2d",
-      "owner_action_required": false
-    },
-    {
-      "at": "2026-08-17T01:08:00+03:00",
-      "result": "Promoted chain-space/repeat proof logic into a generic reusable product module and added negative fixtures that deliberately break repeat body count, base-space coverage and base-round isolation. Browser integration remains the next constraint.",
-      "commit": "1eb89ecee095fb2b5b230e732ff2533d5ed32642",
-      "owner_action_required": false
-    }
+    {"at":"2026-08-16T23:05:00+03:00","result":"Implemented first generator-side machine-checkable shaping proof for lace R8 and made constructability require Pattern Core to accept it.","commit":"b28f3fca7273feeeb6031d508022fadf3ded4ee7","owner_action_required":false},
+    {"at":"2026-08-17T00:20:00+03:00","result":"Extended construction proof to chain-space-fed repeat rounds R3/R5/R7; each petal body now proves exact space consumption, repeat closure and counted output before export can pass constructability.","commit":"b81f948da23898ac880dea44854a0fed47607d2d","owner_action_required":false},
+    {"at":"2026-08-17T01:08:00+03:00","result":"Promoted chain-space/repeat proof logic into a generic reusable product module and added negative fixtures that deliberately break repeat body count, base-space coverage and base-round isolation.","commit":"1eb89ecee095fb2b5b230e732ff2533d5ed32642","owner_action_required":false},
+    {"at":"2026-08-17T02:03:50+03:00","result":"Integrated the generic space/repeat validator into the actual browser/export validation path and removed the duplicate lace-local validator, so export now depends on reusable Pattern IR proof infrastructure.","commit":"e4035439add47de80422cb1d2f9015bdcfce8f31","owner_action_required":false}
   ]
 }
