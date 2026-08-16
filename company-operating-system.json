@@ -2,10 +2,10 @@
   "company": "Crochet Profit Company",
   "mission": "User design intent -> validated crochet construction -> executable pattern -> professional PDF -> paid value",
   "status": "active",
-  "operating_file_version": 2,
-  "updated_at": "2026-08-16T23:05:00+03:00",
+  "operating_file_version": 3,
+  "updated_at": "2026-08-17T00:20:00+03:00",
   "current_stage": "pre-product / correctness architecture",
-  "current_bottleneck": "Extend machine-checkable construction proof beyond the R8 stitch-to-stitch shaping round into chain-space/repeat semantics, then make written instructions/PDF derive from the same validated Pattern IR.",
+  "current_bottleneck": "Promote chain-space/repeat coverage proof into the generic Pattern Core contract layer, add negative fixtures, then derive written instructions and PDF from the validated Pattern IR.",
   "product_truth": {
     "verified_arbitrary_crochet": false,
     "support_policy": ["VERIFIED", "BETA", "UNSUPPORTED"],
@@ -18,20 +18,25 @@
     "Gated lace constructability through generic Pattern Core",
     "Added stitch-math proof contracts and executable validator tests",
     "Added executable R8 construction proof: 85 R7 base stitches -> 95 R8 sc, +10 net increase, full base coverage, max multiplicity 3, no outside-base consumption",
-    "R8 edge stitches now emit consumes/produces/countsAsStitch proof data before Pattern Core validation"
+    "R8 edge stitches emit consumes/produces/countsAsStitch proof data before validation",
+    "Added machine-checkable chain-space/repeat proof for R3, R5 and R7: exactly five base chain spaces, five repeats, fixed body count per space, exact counted output and no outside-base space consumption",
+    "R3/R5/R7 petal stitches now emit consumes/produces/countsAsStitch proof data from construction logic"
   ],
   "evidence": {
-    "latest_commit": "b28f3fca7273feeeb6031d508022fadf3ded4ee7",
-    "proof_scope": "lace-flower R8 stitch-to-stitch shaping",
-    "proof_expected_base": 85,
-    "proof_expected_output": 95,
-    "proof_expected_delta": 10,
+    "latest_commit": "b81f948da23898ac880dea44854a0fed47607d2d",
+    "proof_scope": "lace-flower R3/R5/R7 chain-space repeats plus R8 stitch-to-stitch shaping",
+    "space_repeat_proof": {
+      "R3": "5 R2 chain spaces -> 5 repeats -> 5*(innerDc+4) counted body stitches",
+      "R5": "5 R4 chain spaces -> 5 repeats -> 55 counted body stitches",
+      "R7": "5 R6 chain spaces -> 5 repeats -> 85 counted body stitches"
+    },
+    "r8_proof": {"base":85,"output":95,"delta":10},
     "revenue": "no verified revenue"
   },
   "next_actions": [
-    "Add Pattern Core contracts for chain-space production/consumption and repeat closure so R2-R7 can be proved generically rather than only by lace-specific audit",
-    "Add negative executable fixtures that deliberately break R8 center increases and base coverage",
-    "Compile written instructions from validated Pattern IR instead of maintaining independent handwritten text",
+    "Move spaceCoverageContracts validation from lace-specific constructability into generic Pattern Core so other design families can use it",
+    "Add negative executable fixtures that break chain-space repeat coverage and R8 center increases/base coverage",
+    "Compile written instructions from validated Pattern IR instead of independent handwritten text",
     "Compile PDF only from validated Pattern IR",
     "Do not scale acquisition before outputs are trustworthy"
   ],
@@ -42,6 +47,12 @@
       "at": "2026-08-16T23:05:00+03:00",
       "result": "Implemented first generator-side machine-checkable shaping proof for lace R8 and made constructability require Pattern Core to accept it.",
       "commit": "b28f3fca7273feeeb6031d508022fadf3ded4ee7",
+      "owner_action_required": false
+    },
+    {
+      "at": "2026-08-17T00:20:00+03:00",
+      "result": "Extended construction proof to chain-space-fed repeat rounds R3/R5/R7; each petal body now proves exact space consumption, repeat closure and counted output before export can pass constructability.",
+      "commit": "b81f948da23898ac880dea44854a0fed47607d2d",
       "owner_action_required": false
     }
   ]
