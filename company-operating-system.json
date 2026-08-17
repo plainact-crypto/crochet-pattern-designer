@@ -2,10 +2,10 @@
   "company": "Crochet Profit Company",
   "mission": "User design intent -> validated crochet construction -> executable pattern -> professional PDF -> paid value",
   "status": "active",
-  "operating_file_version": 18,
-  "updated_at": "2026-08-17T16:02:46+03:00",
+  "operating_file_version": 19,
+  "updated_at": "2026-08-17T17:58:05+03:00",
   "current_stage": "pre-product / correctness architecture",
-  "current_bottleneck": "Create the real sellableCompilation pipeline from validated Pattern IR: sellable Pattern Core + space/repeat + constructability + layout + empirical gauge/finished-size + written/chart agreement. Lace PDF now fails closed until that object exists and passes.",
+  "current_bottleneck": "The real sellableCompilation orchestrator now exists and is wired into lace import, but it correctly fails closed because the generated lace has no empirical gauge/finished-size sample evidence. Next: make sample evidence explicit and testable, then prove written/chart agreement and renderer readability before any paid PDF.",
   "product_truth": {
     "verified_arbitrary_crochet": false,
     "support_policy": ["VERIFIED", "BETA", "UNSUPPORTED"],
@@ -19,36 +19,42 @@
     "constructability_verifier_only": true,
     "finished_size_empirically_proven": false,
     "production_chart_readability_passed": false,
-    "lace_pdf_export_locked_without_sellable_compilation": true
+    "lace_pdf_export_locked_without_sellable_compilation": true,
+    "sellable_compilation_orchestrator_exists": true,
+    "sellable_compilation_requires_empirical_measurement": true
   },
   "evidence": {
-    "latest_product_commit": "2773a3b6b89b67a33331ce6fd7fb251dacd8bc6e",
+    "latest_product_commit": "6ce51f3c29c142dbcb1813a2476cd0bcafcfff84",
     "proof_ownership_gate_commit": "3b6d8f7ce4306c4f09afcec56250b4692032aa29",
     "generator_native_proof_commit": "2453cdab22a74786f631a7e8b52ad1fc765ae778",
     "verifier_only_constructability_commit": "5817aba482bfb7abed48f7d1439cce3e63e9220e",
     "export_fail_closed_commit": "2773a3b6b89b67a33331ce6fd7fb251dacd8bc6e",
     "export_regression_gate_commit": "ce748069a3be89e35fa63509da271dc421ee77f0",
-    "proof_ownership_result": "lace-flower-engine build emits consumes/produces/countsAsStitch plus coverageContracts, spaceCoverageContracts and proofModel; constructability verifies rather than manufactures evidence.",
-    "export_audit": "Found a serious gap: export.js previously allowed a lace PDF after layout/constructability PASS and could fall back to generic board-derived written instructions even though the generator's hand-authored written source had been removed. Export now requires activeCrochetGraph.sellableCompilation.ok plus validated written output, constructability and layout; otherwise it locks the PDF.",
-    "regression_gate": "Added tests/lace-export-fail-closed.test.js to guard the sellableCompilation requirement and prevent legacy lace written fallback.",
+    "sellable_compiler_commit": "f604d5799c92e3eb48a1eef32da7f4279379bc53",
+    "sellable_compiler_wiring_commit": "b7a76cc6a165be7c86a97e5fbd0a03011bebf949",
+    "sellable_compiler_test_commit": "8eee62726686751a65696a30c91fb52d134b7efd",
+    "production_loader_commit": "6ce51f3c29c142dbcb1813a2476cd0bcafcfff84",
+    "sellable_compiler_behavior": "On lace import, after constructability, Pattern IR is revalidated at sellable level, space/repeat proof is rerun, constructability and layout must pass, and empirical physical sample evidence is mandatory before Pattern-IR-derived written output can populate sellableCompilation.",
+    "empirical_gate": "Rendered pixels/grid dimensions are explicitly rejected as gauge evidence. Measurement evidence must be empirical and record positive finished width, cm/in unit, yarn, hook and blocking state.",
     "size_audit": "No empirical lace sample/measurement evidence exists; do not claim finished diameter.",
-    "production_status": "Prior manual production QA confirmed topology import but chart symbols are too small/light for professional readability at 100% zoom. Production must be rechecked after deployment and readability remains a sellability blocker.",
+    "production_status": "Prior manual production QA confirmed topology import but chart symbols are too small/light for professional readability at 100% zoom. Readability remains a sellability blocker.",
     "gmail_owner_directives": "Checked plainact@outlook.com. Current owner messages concern Plain Act LinkedIn publishing only; no Crochet directive received.",
     "revenue": "no verified revenue"
   },
   "recent_execution": [
     "Removed hand-authored written source and locked pre-proof written output.",
     "Moved construction proof ownership into lace-flower-engine and made constructability verifier-only.",
-    "Audited export path and discovered it could still create a lace PDF with generic board-derived written instructions after constructability PASS.",
-    "Closed that path: lace PDF/written export now requires a successful sellableCompilation object and no longer falls back to generic written text.",
-    "Added executable source regression guard for fail-closed lace export."
+    "Closed unsafe generic board-derived lace PDF/written fallback.",
+    "Implemented pattern-sellable-compiler-v1 as the single fail-closed orchestration gate from Pattern IR to sellable written output.",
+    "Added regression tests for empirical measurement gating and wired the compiler into the real lace import flow.",
+    "Loaded the sellable compiler in production index; current lace should produce sellableCompilation.ok=false until physical sample evidence exists."
   ],
   "next_actions": [
-    "Implement sellableCompilation from the actual generated graph using Pattern Core at sellable level, generic space coverage, deterministic constructability and layout evidence.",
-    "Define a Pattern-IR-derived written compiler and executable written/chart agreement checks; only its validated output may populate sellableCompilation.written.",
-    "Define sample-based gauge/finished-size evidence with yarn, hook, blocking and tolerance assumptions; keep lace BETA until measured.",
+    "Add explicit sample-evidence schema/UI or controlled fixture path for measured gauge/finished size; never infer it from the renderer.",
+    "Add executable end-to-end lace fixture proving sellableCompilation stays false without measurement and can only become true when every proof layer plus valid empirical evidence passes.",
+    "Strengthen written/chart agreement beyond shared source: compare compiled round facts/counts/targets against Pattern IR and rendered chart evidence.",
     "Fix chart symbol scale/contrast/readability and add an executable export/readability regression check.",
-    "Recheck production after deployment; do not accept constructability PASS alone as sellability.",
+    "Recheck production deployment and proof flow; do not accept constructability PASS alone as sellability.",
     "Only after correctness, empirical size and readability evidence, improve PDF presentation and test willingness-to-pay; no live charging without owner approval."
   ],
   "revenue_status": "no verified revenue",
@@ -58,6 +64,7 @@
     {"at":"2026-08-17T13:00:10+03:00","result":"Added executable regression gate enforcing generator-native crochet proof ownership.","commit":"3b6d8f7ce4306c4f09afcec56250b4692032aa29","owner_action_required":false},
     {"at":"2026-08-17T14:02:01+03:00","result":"Recorded production QA: topology imports but chart symbols are too small/light for professional readability.","owner_action_required":false},
     {"at":"2026-08-17T15:04:30+03:00","result":"Closed proof-ownership architecture defect: generator now emits construction evidence natively and constructability is verifier-only.","commit":"2453cdab22a74786f631a7e8b52ad1fc765ae778","owner_action_required":false},
-    {"at":"2026-08-17T16:02:46+03:00","result":"Closed a newly discovered unsafe export path: BETA lace could previously export generic board-derived written instructions/PDF after layout/constructability PASS. Lace export now fails closed until a real sellableCompilation passes; regression guard added.","commit":"2773a3b6b89b67a33331ce6fd7fb251dacd8bc6e","owner_action_required":false}
+    {"at":"2026-08-17T16:02:46+03:00","result":"Closed unsafe export path; lace export now fails closed until a real sellableCompilation passes.","commit":"2773a3b6b89b67a33331ce6fd7fb251dacd8bc6e","owner_action_required":false},
+    {"at":"2026-08-17T17:58:05+03:00","result":"Implemented and production-loaded the real sellableCompilation orchestrator. It reruns sellable Pattern Core + space proof and requires constructability, layout, empirical physical measurement, then Pattern-IR-derived written compilation. Added fail-closed measurement regression tests.","commit":"6ce51f3c29c142dbcb1813a2476cd0bcafcfff84","owner_action_required":false}
   ]
 }
