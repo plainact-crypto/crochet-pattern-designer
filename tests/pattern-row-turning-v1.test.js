@@ -1,0 +1,8 @@
+const assert=require('assert');const {validateRowTurning}=require('../pattern-row-turning-v1.js');
+const nodes=[{id:'a',row:1,type:'single'},{id:'b',row:2,type:'single'}];
+let r=validateRowTurning({nodes,rowPolicy:{1:{mode:'turn',direction:'right-to-left',primaryStitch:'single',turningChains:1,turningChainCountsAsStitch:false},2:{mode:'turn',direction:'left-to-right',primaryStitch:'single',turningChains:1,turningChainCountsAsStitch:false}}});assert.equal(r.ok,true);
+r=validateRowTurning({nodes,rowPolicy:{1:{mode:'turn',direction:'right-to-left',primaryStitch:'single',turningChains:1,turningChainCountsAsStitch:true},2:{mode:'turn',direction:'left-to-right',primaryStitch:'single',turningChains:1,turningChainCountsAsStitch:false}}});assert(r.errors.some(e=>e.code==='SC_TURNING_CHAIN_COUNTED'));
+r=validateRowTurning({nodes,rowPolicy:{1:{mode:'turn',direction:'right-to-left',primaryStitch:'single',turningChains:1,turningChainCountsAsStitch:false},2:{mode:'turn',direction:'right-to-left',primaryStitch:'single',turningChains:1,turningChainCountsAsStitch:false}}});assert(r.errors.some(e=>e.code==='TURN_DIRECTION_NOT_ALTERNATING'));
+r=validateRowTurning({nodes:[{id:'d',row:1,type:'double'}],rowPolicy:{1:{mode:'turn',direction:'right-to-left',primaryStitch:'double',turningChains:3,turningChainCountsAsStitch:false}}});assert(r.errors.some(e=>e.code==='TALL_TURNING_CHAIN_NOT_COUNTED'));
+r=validateRowTurning({nodes:[{id:'d',row:1,type:'double'}],rowPolicy:{1:{mode:'turn',direction:'right-to-left',primaryStitch:'double',turningChains:3,turningChainCountsAsStitch:true}}});assert.equal(r.ok,true);
+console.log('pattern-row-turning-v1: PASS');
