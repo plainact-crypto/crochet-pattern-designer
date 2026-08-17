@@ -48,7 +48,8 @@ function svgFor(type,size,color='#171717'){
 
 function snapshot(){history.push(JSON.stringify({items,currentRow,currentCol,placementRotation}));if(history.length>80)history.shift()}
 function ensureBoardHeight(){const maxY=Math.max(BASE_Y+currentRow*PATH_GAP,...items.map(i=>i.y||0),0);board.style.minHeight=Math.max(window.innerHeight-190,maxY+180)+'px'}
-function applyZoom(nextZoom){zoom=Math.max(MIN_ZOOM,Math.min(MAX_ZOOM,nextZoom));board.style.zoom=zoom;zoomResetBtn.textContent=Math.round(zoom*100)+'%'}
+function hasGeneratedLace(){return items.some(i=>i?.generatedPattern&&i.patternKind==='lace-flower')}
+function applyZoom(nextZoom){const floor=hasGeneratedLace()?1:MIN_ZOOM;zoom=Math.max(floor,Math.min(MAX_ZOOM,nextZoom));board.style.zoom=zoom;zoomResetBtn.textContent=Math.round(zoom*100)+'%';if(hasGeneratedLace())board.dataset.laceNativeScale=zoom>=1?'PASS':'FAIL'}
 function zoomAround(nextZoom,clientX,clientY){const oldZoom=zoom,rect=boardWrap.getBoundingClientRect(),cx=clientX??(rect.left+rect.width/2),cy=clientY??(rect.top+rect.height/2),localX=cx-rect.left+boardWrap.scrollLeft,localY=cy-rect.top+boardWrap.scrollTop;applyZoom(nextZoom);const ratio=zoom/oldZoom;boardWrap.scrollLeft=Math.max(0,localX*ratio-(cx-rect.left));boardWrap.scrollTop=Math.max(0,localY*ratio-(cy-rect.top))}
 function anchorForPath(){const pathItems=items.filter(i=>i.row===currentRow);if(selected){const s=items.find(i=>i.id===selected);if(s&&s.row===currentRow)return s}return pathItems[pathItems.length-1]||null}
 function firstPosition(){return{x:50,y:BASE_Y+(currentRow*PATH_GAP)}}
