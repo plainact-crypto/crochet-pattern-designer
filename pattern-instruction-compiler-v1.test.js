@@ -20,7 +20,8 @@ assert.throws(()=>compiler.compile({...mk(),validation:{ok:false}}),/REQUIRES_VA
 assert.throws(()=>compiler.compile({kind:'unknown',nodes:[{id:'x',type:'single'}],validation:{ok:true}}),/UNSUPPORTED_KIND/);
 const base=compiler.compile(mk());
 assert.equal(base.facts.r1Count,10); assert.equal(base.facts.r8Count,95); assert.equal(base.facts.maxEdgeMultiplicity,3);
-assert(base.text.includes('3 dc')); assert(base.text.includes('ch 7')); assert(base.text.includes('ch 11')); assert(base.text.includes('[95 scs]'));
+assert(base.text.includes('3 dc')); assert(base.text.includes('ch 7')); assert(base.text.includes('ch 11')); assert(base.text.includes('[95 sc]'));
+assert(!base.text.includes('scs'));
 const changed=compiler.compile(mk(5,5,15));
 assert(changed.text.includes('5 dc')); assert(changed.text.includes('ch 5')); assert(changed.text.includes('ch 15'));
 assert.notEqual(changed.text,base.text);
