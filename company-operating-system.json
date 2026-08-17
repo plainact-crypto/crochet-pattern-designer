@@ -2,10 +2,10 @@
   "company": "Crochet Profit Company",
   "mission": "User design intent -> validated crochet construction -> executable pattern -> professional PDF -> paid value",
   "status": "active",
-  "operating_file_version": 21,
-  "updated_at": "2026-08-17T20:14:00+03:00",
+  "operating_file_version": 22,
+  "updated_at": "2026-08-17T20:22:00+03:00",
   "current_stage": "pre-product / correctness + chart readability",
-  "current_bottleneck": "Owner QA showed the 5-petal lace output was visually unacceptable as a crochet chart: auto-fit shrank the generated motif and its crochet glyphs below professional readability. Source fixes are now on main: generated lace cannot auto-shrink below 100%, standard crochet glyph metrics are materially larger while centers remain on the 24px grid, and renderer centering uses the effective native zoom. Production verification is still required before claiming the visual defect fixed. Physical finished-size verification remains blocked on a real crocheted sample measurement.",
+  "current_bottleneck": "Owner production QA on mobile proved the readable-glyph deploy still failed: the SIZE/GRID panel reported CONSTRUCTABILITY PROOF: FAIL with 4 body collisions and the chart area appeared blank because the renderer hid every generated stitch whenever layout validation failed. The renderer has now been refactored to space readable multi-cell crochet glyphs radially and tangentially, expand the canonical motif canvas, retry collision-free layout more aggressively, keep invalid layouts visible in red for debugging rather than blanking the board, and center even failed layouts at >=100% native zoom. Production re-verification is required before claiming this fixed. Physical finished-size verification remains blocked on a real crocheted sample measurement.",
   "product_truth": {
     "verified_arbitrary_crochet": false,
     "support_policy": ["VERIFIED", "BETA", "UNSUPPORTED"],
@@ -26,7 +26,9 @@
     "generated_chart_grid_cell_px": 24
   },
   "evidence": {
-    "latest_product_commit": "7146dec2563a36b8a50e02b4ce8528615b89ba0b",
+    "latest_product_commit": "c79b2703b522df85eeff954fad9015ab28fd81a7",
+    "renderer_collision_fix_commit": "6e1695b4b4a137f8736efef935b323c882da2b9a",
+    "renderer_collision_deploy_commit": "c79b2703b522df85eeff954fad9015ab28fd81a7",
     "readability_metrics_commit": "93eb1ea8c6bc6f27845564d899c59a96b9c26034",
     "native_zoom_floor_commit": "a1383f94c9b8afd2e34458c08ffdb9d78ff411df",
     "renderer_native_centering_commit": "85da4978fa268b7ec64bd380fdd3f4dbdb988563",
@@ -41,11 +43,12 @@
     "sellable_compiler_behavior": "Sellable Pattern IR must pass core, space/repeat, constructability and layout proofs, then provide traceable physical-sample evidence before Pattern-IR-derived written output can populate sellableCompilation.",
     "empirical_gate": "Pixels/grid dimensions are rejected. Evidence requires empirical=true, method=physical_sample, positive finished width, cm/in, yarn, hook, blocking state, sampleId and valid measuredAt timestamp.",
     "size_audit": "No physical lace sample/measurement evidence exists; do not claim finished diameter.",
-    "owner_visual_qa": "Owner explicitly rejected the current production 5-petal result as too small and not recognizably professional crochet. This is treated as failed production readability until re-verified after deployment.",
+    "owner_visual_qa": "Owner screenshot from production mobile showed SIZE / GRID v8.4, stitch size 100%, line weight 100%, target 20x20 cm, and CONSTRUCTABILITY PROOF: FAIL with body collisions: 4. The visible board was effectively blank because renderer apply() hid all generated stitches whenever result.ok was false. This is explicit production failure evidence.",
     "domain_standard": "Craft Yarn Council standardized crochet chart symbols are the reference vocabulary; CYC identifies chain, slip stitch, single crochet, half double crochet, double crochet, treble, double treble, clusters, shells and picot symbols as standardized readable chart notation. CYC also states gauge should be followed for the actual pattern and is especially variable for lace/openwork.",
-    "source_readability_change": "Generated stitch centers remain integer grid coordinates on a 24px grid, but symbol visual footprints now span multiple cells where stitch anatomy requires it; double crochet is 30x58px, treble 30x70px, double treble 32x82px, chain 30x18px at native scale.",
-    "production_verification": "Not yet proven in this run. Public Workers URL could not be fetched by available web/container networking, and this repository has no GitHub Actions deployment run to use as production evidence. Do not claim live fix until production is manually or externally verified.",
-    "gmail_owner_directives": "Checked plainact@outlook.com; current messages concern Chess Cloudflare and Plain Act LinkedIn, with no Crochet directive.",
+    "source_readability_change": "Generated stitch centers remain integer grid coordinates on a 24px grid, while symbol visual footprints span multiple cells where stitch anatomy requires it.",
+    "new_renderer_behavior": "Renderer v8.1 uses a larger canonical canvas, larger center ring spacing, radial+tangential role spreading with up to 18 collision-resolution attempts, collision checks against actual rotated visual footprints, >=100% native zoom floor, and fail-visible red rendering instead of hiding the entire chart on invalid layout.",
+    "production_verification": "Pending after commit c79b270. Do not claim fixed until owner or external production QA confirms a recognizable crochet chart and zero body collisions.",
+    "gmail_owner_directives": "Checked plainact@outlook.com and 'Osama is saying'; current messages concern Chess Cloudflare and Plain Act LinkedIn, with no Crochet directive.",
     "revenue": "no verified revenue"
   },
   "recent_execution": [
@@ -54,10 +57,12 @@
     "Closed unsafe generic board-derived lace PDF/written fallback.",
     "Implemented pattern-sellable-compiler-v1 as the single fail-closed orchestration gate from Pattern IR to sellable written output.",
     "Strengthened measurement evidence from a boolean assertion to traceable physical-sample provenance and added regression tests.",
-    "Responded to failed owner visual QA by fixing the source scale model rather than applying cosmetic CSS: enlarged generated crochet glyph footprints, prohibited automatic generated-lace shrink below 100%, fixed renderer centering at the effective zoom, and cache-busted the three changed assets in index.html."
+    "Responded to failed owner visual QA by increasing generated crochet glyph footprints and prohibiting automatic generated-lace shrink below 100%.",
+    "Responded to the next production screenshot showing 4 body collisions and a blank board by rebuilding renderer spacing around actual glyph footprints and removing the hide-all-on-failure behavior."
   ],
   "next_actions": [
-    "Verify the updated 5-petal chart on production at 100% on desktop and mobile. Pass only if crochet symbols are immediately recognizable and readable without zooming in; otherwise keep readability failed and iterate renderer geometry/glyph anatomy.",
+    "Re-verify the updated 5-petal chart on production mobile and desktop. Pass only if body collisions are zero and crochet symbols are immediately recognizable at 100% without manual zoom.",
+    "If any collisions remain, inspect the actual collision pairs from __LACE_LAYOUT_SNAPSHOT and adjust canonical role geometry rather than shrinking glyphs.",
     "Add executable written/chart agreement verification comparing round counts, stitch roles and worked-into targets against Pattern IR/rendered chart evidence.",
     "Add an executable renderer-readability regression fixture covering minimum native glyph dimensions, 100% generated-lace zoom floor, collision count and clipping.",
     "When a real sample is physically crocheted, record traceable measurement evidence; never infer finished size from renderer/grid.",
@@ -69,6 +74,7 @@
   "run_log": [
     {"at":"2026-08-17T17:58:05+03:00","result":"Implemented and production-loaded the real sellableCompilation orchestrator with empirical measurement gating.","commit":"6ce51f3c29c142dbcb1813a2476cd0bcafcfff84","owner_action_required":false},
     {"at":"2026-08-17T19:01:43+03:00","result":"Strengthened sellable measurement gate to require traceable physical-sample provenance (method, sample ID and measurement timestamp), added regression tests and production cache bust. Paid PDF remains locked because no physical sample evidence exists.","commit":"5ad18fdcb104e3b5ce8991446df80e2c3fe8be5e","owner_action_required":false},
-    {"at":"2026-08-17T20:14:00+03:00","result":"Owner visual QA was accepted as a real failure. Increased generated crochet glyph metrics, prevented automatic lace shrink below native 100%, fixed native-scale centering, and cache-busted updated assets on main. Production visual verification remains pending; no claim of live fix yet.","commit":"7146dec2563a36b8a50e02b4ce8528615b89ba0b","owner_action_required":false}
+    {"at":"2026-08-17T20:14:00+03:00","result":"Owner visual QA was accepted as a real failure. Increased generated crochet glyph metrics, prevented automatic lace shrink below native 100%, fixed native-scale centering, and cache-busted updated assets on main. Production visual verification remained pending.","commit":"7146dec2563a36b8a50e02b4ce8528615b89ba0b","owner_action_required":false},
+    {"at":"2026-08-17T20:22:00+03:00","result":"Owner production screenshot proved the prior readability deploy still failed with 4 body collisions and a blank chart caused by hide-all-on-failure behavior. Rebuilt lace renderer spacing around multi-cell glyph footprints, increased collision-resolution attempts, expanded the canonical canvas, made invalid layouts visible in red for diagnostics, retained >=100% zoom floor, and cache-busted the renderer asset on main.","commit":"c79b2703b522df85eeff954fad9015ab28fd81a7","owner_action_required":false}
   ]
 }
