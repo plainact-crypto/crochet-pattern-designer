@@ -1,7 +1,7 @@
 // Pattern Instruction Compiler v1 — written output must come from validated Pattern IR, never hand-authored copy.
 (()=>{
   const TYPE={single:'sc',half:'hdc',double:'dc',treble:'tr',dtr:'dtr',slip:'sl st',chain:'ch',ring:'MR'};
-  const plural=(n,s)=>`${n} ${s}${n===1?'':'s'}`;
+  const counted=(n,s)=>`${n} ${s}`;
   function groupedTypes(nodes){
     const out=[];
     for(const n of nodes){const t=TYPE[n.type]||n.type;const last=out[out.length-1];if(last&&last.t===t)last.n++;else out.push({t,n:1});}
@@ -24,14 +24,14 @@
       `${P}-PETAL LAYERED LACE FLOWER · US TERMS`,
       '',
       'Start: MR.',
-      `R1: ${r1} sc in MR; join with sl st in first sc. [${plural(r1,'sc')}]`,
+      `R1: ${r1} sc in MR; join with sl st in first sc. [${counted(r1,'sc')}]`,
       `R2: *ch ${r2[0]?.chainIds?.length||0}, skip 1 sc, sl st in next sc; repeat around. [${P} ch-${r2[0]?.chainIds?.length||0} sps]`,
       `R3: In each ch-${r2[0]?.chainIds?.length||0} sp work (${groupedTypes(inner)}); sl st in ending anchor. [${P} inner petals]`,
       `R4: After the fifth inner petal, sl st to the next unused R1 sc behind the petal. *ch ${r4[0]?.chainIds?.length||0}, sl st in next unused R1 sc; repeat around. [${P} ch-${r4[0]?.chainIds?.length||0} sps]`,
       `R5: In each ch-${r4[0]?.chainIds?.length||0} sp work (${groupedTypes(mid)}); sl st in ending anchor. [${P} middle petals]`,
       `R6: From the fifth R5 petal join, *ch ${r6[0]?.chainIds?.length||0} behind work, sl st in next R5 petal join; repeat around. [${P} ch-${r6[0]?.chainIds?.length||0} sps]`,
       `R7: In each ch-${r6[0]?.chainIds?.length||0} sp work (${groupedTypes(outer)}); sl st in ending anchor. [${P} outer petals]`,
-      `R8: sc in each R7 stitch${maxInc>1?`, working ${maxInc} sc in each marked increase stitch`:''}; join with sl st. [${plural(edge.length,'sc')}]`,
+      `R8: sc in each R7 stitch${maxInc>1?`, working ${maxInc} sc in each marked increase stitch`:''}; join with sl st. [${counted(edge.length,'sc')}]`,
       '',
       `Parameters proven by Pattern IR: Inner DC ${p.innerDc} · Middle chain ${p.middleChain} · Outer chain ${p.outerChain}.`
     ];
