@@ -25,4 +25,16 @@ assert(!base.text.includes('scs'));
 const changed=compiler.compile(mk(5,5,15));
 assert(changed.text.includes('5 dc')); assert(changed.text.includes('ch 5')); assert(changed.text.includes('ch 15'));
 assert.notEqual(changed.text,base.text);
-console.log('pattern-instruction-compiler-v1 agreement tests passed');
+
+const unproven=mk();
+assert.throws(()=>compiler.compileSellable(unproven),/PATTERN_CORE_PROOF/);
+unproven.coreValidation={ok:true};
+assert.throws(()=>compiler.compileSellable(unproven),/SPACE_REPEAT_PROOF/);
+unproven.spaceCoreValidation={ok:true};
+assert.throws(()=>compiler.compileSellable(unproven),/CONSTRUCTABILITY_PROOF/);
+unproven.constructability={ok:true};
+assert.throws(()=>compiler.compileSellable(unproven),/LAYOUT_PROOF/);
+unproven.layoutValidation={ok:true};
+assert(compiler.compileSellable(unproven).text.includes('[95 sc]'));
+
+console.log('pattern-instruction-compiler-v1 agreement + sellable-proof-gate tests passed');
