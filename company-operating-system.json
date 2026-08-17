@@ -2,10 +2,10 @@
   "company": "Crochet Profit Company",
   "mission": "User design intent -> validated crochet construction -> executable pattern -> professional PDF -> paid value",
   "status": "active",
-  "operating_file_version": 13,
-  "updated_at": "2026-08-17T10:51:40+03:00",
+  "operating_file_version": 14,
+  "updated_at": "2026-08-17T11:05:23+03:00",
   "current_stage": "pre-product / correctness architecture",
-  "current_bottleneck": "Add gauge and finished-size proof to the actual generated lace graph, then execute the real generator graph through every sellable proof layer and verify browser/production behavior.",
+  "current_bottleneck": "Move proof ownership into the lace generator itself: build() still emits bare topology, while constructability-v7.8.js mutates the graph after import to add consumes/produces, coverageContracts, spaceCoverageContracts and proofModel. Then add evidence-based gauge/finished-size proof before any sellable claim.",
   "product_truth": {
     "verified_arbitrary_crochet": false,
     "support_policy": ["VERIFIED", "BETA", "UNSUPPORTED"],
@@ -15,7 +15,9 @@
     "sellable_written_requires_all_proof_layers": true,
     "generated_pdf_uses_sellable_compiler_gate": true,
     "lace_generator_parallel_written_source_removed": true,
-    "lace_family_status": "BETA"
+    "lace_family_status": "BETA",
+    "generator_native_proof_contracts": false,
+    "finished_size_empirically_proven": false
   },
   "recent_execution": [
     "Added generic crochet Pattern IR validator and stitch-math coverage contracts.",
@@ -25,21 +27,28 @@
     "Added compileSellable proof gate requiring Pattern Core, space/repeat, constructability and layout proofs.",
     "Removed writtenFor(), graph.written and pre-proof written rendering from lace-flower-engine.js.",
     "Added executable source-of-truth regression guard preventing writtenFor()/graph.written from returning.",
-    "Generator now labels lace BETA and explicitly locks written instructions until all proof layers pass."
+    "Generator labels lace BETA and locks written instructions until all proof layers pass.",
+    "Audited proof ownership: lace-flower-engine build() currently returns topology only; constructability-v7.8 attachProofContracts() adds machine-checkable consumes/produces and proof contracts only after import. This is the next correctness defect to remove.",
+    "Audited size gate: Pattern Core validates structured gauge fields and requires finishedSize for sellable output, but there is no empirical/sample-based lace finished-size proof yet. Do not infer motif diameter from chart geometry or generic gauge alone."
   ],
   "evidence": {
     "latest_product_commit": "4ded74a12b9c6d2aecc1b7dbfc0d05f72baa1b65",
     "source_truth_fix_commit": "d85a69b40e568671d3c6e79377fff6a1818bdc1f",
     "source_truth_guard_commit": "4ded74a12b9c6d2aecc1b7dbfc0d05f72baa1b65",
+    "operating_state_commit_pending_this_update": true,
     "proof_scope": "Pattern IR validation + generic chain-space/repeat proof + R8 shaping proof + compiler agreement fixtures + fail-closed generated PDF + sellable multi-proof instruction gate + generator source-of-truth guard",
-    "test_status": "Existing validator/compiler tests are committed. New source-truth guard is committed; independent CI/runtime execution is not yet evidenced in this run.",
-    "production_status": "Production URL is known, but production asset verification was not obtained in this run; do not claim deployment parity yet.",
-    "gmail_owner_directives": "No messages from plainact@outlook.com and no messages containing 'Osama is saying' found in the checked recent window.",
+    "generator_audit": "lace-flower-engine.js build() returns kind/version/params/nodes/spaces/centerId without consumes/produces/coverageContracts; constructability-v7.8.js attachProofContracts() mutates these onto activeCrochetGraph after import.",
+    "size_audit": "pattern-core-v1.js has structured gauge validation and sellable FINISHED_SIZE_MISSING enforcement, but no lace sample/measurement evidence exists to justify a claimed finished diameter.",
+    "test_status": "Existing validator/compiler/source-truth tests are committed. No new runtime test execution evidenced in this run.",
+    "production_status": "Production parity was not independently verified in this run; do not claim deployment parity.",
+    "gmail_owner_directives": "No messages from plainact@outlook.com found in this run.",
     "revenue": "no verified revenue"
   },
   "next_actions": [
-    "Encode gauge assumptions and finished-size plausibility proof in Pattern IR for lace output.",
-    "Add executable positive/negative gauge-size fixtures and reject impossible/unsupported size claims.",
+    "Refactor lace-flower-engine build() so each generated stitch carries consumes/produces/countsAsStitch from construction logic and the returned graph includes coverageContracts, spaceCoverageContracts and proofModel before import/rendering.",
+    "Make constructability audit verify generator-native contracts instead of manufacturing them; reject graphs missing or contradicting those contracts.",
+    "Add executable positive/negative generator-native proof fixtures so a topology that visually renders but lacks construction math fails.",
+    "Define lace gauge/finished-size policy as sample-based measurement with explicit yarn/hook/gauge/blocking assumptions and tolerance; keep BETA until measured evidence exists.",
     "Run actual generator-produced graph through Pattern Core, space/repeat, constructability, layout and compileSellable agreement checks.",
     "Verify fail-closed written/PDF behavior in browser and production after deployment.",
     "Only after correctness evidence, improve PDF presentation and test willingness-to-pay without enabling live charging before owner approval."
@@ -58,6 +67,7 @@
     {"at":"2026-08-17T07:02:00+03:00","result":"Added sellable instruction compilation gate requiring Pattern Core, space/repeat, constructability and layout proof layers.","commit":"50be8387b33be815c02da12f20f6cba6d17f0219","owner_action_required":false},
     {"at":"2026-08-17T08:03:00+03:00","result":"Wired generated PDF and synced written output to compileSellable().","commit":"9a2954b8edd36a0254b680243eea949e7f4937ea","owner_action_required":false},
     {"at":"2026-08-17T08:58:37+03:00","result":"Audited main generator and confirmed remaining hand-authored writtenFor()/graph.written path.","owner_action_required":false},
-    {"at":"2026-08-17T10:51:40+03:00","result":"Removed hand-authored generator written path, locked pre-proof written output, labeled lace BETA, and added regression guard enforcing Pattern IR as the only instruction source.","commit":"4ded74a12b9c6d2aecc1b7dbfc0d05f72baa1b65","owner_action_required":false}
+    {"at":"2026-08-17T10:51:40+03:00","result":"Removed hand-authored generator written path, locked pre-proof written output, labeled lace BETA, and added regression guard enforcing Pattern IR as the only instruction source.","commit":"4ded74a12b9c6d2aecc1b7dbfc0d05f72baa1b65","owner_action_required":false},
+    {"at":"2026-08-17T11:05:23+03:00","result":"Audited generator-native proof ownership and finished-size gate. Confirmed proof contracts are still injected post-build by constructability audit and no empirical lace size evidence exists; recorded this as the immediate correctness bottleneck and kept family BETA.","owner_action_required":false}
   ]
 }
