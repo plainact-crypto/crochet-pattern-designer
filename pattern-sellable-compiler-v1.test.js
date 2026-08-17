@@ -13,10 +13,14 @@ assert.equal(out.ok,false);
 assert(out.errors.some(e=>e.code==='EMPIRICAL_SIZE_EVIDENCE_MISSING'));
 assert.equal(minimal.sellableCompilation.ok,false);
 
-const evidence=sellable.empiricalSizeEvidence({meta:{measurementEvidence:{empirical:true,finishedWidth:20,unit:'cm',yarn:'DK sample',hook:'3.5 mm',blocking:'blocked dry'}}});
+const valid={empirical:true,method:'physical_sample',finishedWidth:20,unit:'cm',yarn:'DK sample',hook:'3.5 mm',blocking:'blocked dry',sampleId:'lace-dk-001',measuredAt:'2026-08-17T18:30:00+03:00'};
+const evidence=sellable.empiricalSizeEvidence({meta:{measurementEvidence:valid}});
 assert.equal(evidence.ok,true);
 assert.equal(evidence.evidence.finishedWidth,20);
-assert.equal(sellable.empiricalSizeEvidence({meta:{measurementEvidence:{empirical:false,finishedWidth:20,unit:'cm',yarn:'x',hook:'x',blocking:'x'}}}).ok,false);
-assert.equal(sellable.empiricalSizeEvidence({meta:{measurementEvidence:{empirical:true,finishedWidth:20,unit:'px',yarn:'x',hook:'x',blocking:'x'}}}).ok,false);
+assert.equal(sellable.empiricalSizeEvidence({meta:{measurementEvidence:{...valid,empirical:false}}}).ok,false);
+assert.equal(sellable.empiricalSizeEvidence({meta:{measurementEvidence:{...valid,unit:'px'}}}).ok,false);
+assert.equal(sellable.empiricalSizeEvidence({meta:{measurementEvidence:{...valid,method:'renderer_estimate'}}}).ok,false);
+assert.equal(sellable.empiricalSizeEvidence({meta:{measurementEvidence:{...valid,sampleId:''}}}).ok,false);
+assert.equal(sellable.empiricalSizeEvidence({meta:{measurementEvidence:{...valid,measuredAt:'not-a-date'}}}).ok,false);
 
-console.log('sellable compiler fail-closed + empirical measurement gate tests passed');
+console.log('sellable compiler fail-closed + traceable physical sample evidence tests passed');
