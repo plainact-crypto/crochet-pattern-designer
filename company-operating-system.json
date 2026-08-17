@@ -2,20 +2,20 @@
   "company":"Crochet Profit Company",
   "mission":"User design intent -> validated crochet construction -> executable pattern -> professional PDF -> paid value",
   "status":"active",
-  "operating_file_version":8,
-  "updated_at":"2026-08-17T05:01:49+03:00",
+  "operating_file_version":9,
+  "updated_at":"2026-08-17T06:00:00+03:00",
   "current_stage":"pre-product / correctness architecture",
-  "current_bottleneck":"Remove the remaining lace generator writtenFor hand-authored path and make generation itself compile written output only after Pattern Core + construction proof validation; then make PDF/export fail closed for unsupported/unvalidated IR.",
-  "product_truth":{"verified_arbitrary_crochet":false,"support_policy":["VERIFIED","BETA","UNSUPPORTED"],"renderer_is_source_of_truth":false,"validated_pattern_ir_is_source_of_truth":true},
+  "current_bottleneck":"Remove the remaining lace generator writtenFor hand-authored path so generation itself compiles written output only after Pattern Core + construction proof validation; then add generator-produced graph agreement tests and gauge/finished-size proof.",
+  "product_truth":{"verified_arbitrary_crochet":false,"support_policy":["VERIFIED","BETA","UNSUPPORTED"],"renderer_is_source_of_truth":false,"validated_pattern_ir_is_source_of_truth":true,"generated_pdf_fail_closed":true},
   "recent_execution":[
     "Added generic crochet Pattern IR validator and stitch-math coverage contracts",
     "Added generic chain-space/repeat proof for R3/R5/R7 and independently passing negative fixtures",
     "Added Pattern Instruction Compiler v1 and changed guided written/PDF consumers to compiler output",
-    "Added executable compiler agreement fixtures: invalid IR refused, unsupported kind refused, graph counts reflected, parameter changes propagate to written output",
-    "Found and fixed a compiler terminology defect that emitted nonstandard pluralized abbreviation `scs`; compiled count notation now remains standard `95 sc`"
+    "Added executable compiler agreement fixtures and fixed nonstandard pluralized stitch abbreviation output",
+    "Closed a sellability/safety hole in generated PDF export: generated patterns can no longer fall back to a generic authoritative-looking PDF when construction/layout validation fails or instruction compilation is unsupported"
   ],
-  "evidence":{"latest_product_commit":"65785b910a352ebc7f99b0d39cf25022ee2bae1b","instruction_compiler_fix_commit":"4d0072db8b001fe98b4cf9b297c3196baadcb05e","compiler_test_commit":"65785b910a352ebc7f99b0d39cf25022ee2bae1b","proof_scope":"Pattern IR validation + generic chain-space/repeat proof + R8 shaping proof + compiler agreement fixtures committed","test_status":"compiler fixture is executable under Node but runtime execution was not independently available through the GitHub connector in this run; assertions encode refusal and propagation gates","revenue":"no verified revenue"},
-  "next_actions":["Remove writtenFor() and graph.written hand-authored source from lace-flower-engine.js","After graph validation, compile written output from CrochetInstructionCompiler and refuse generation if compiler cannot compile validated IR","Make PDF/export explicitly refuse unsupported/unvalidated patterns rather than fall back to authoritative-looking copy","Add agreement assertion against actual generator-produced graph, not only fixture graph","Then add gauge/finished-size proof before any design family can become VERIFIED/sellable"],
+  "evidence":{"latest_product_commit":"dbaaa760060015a7442989f75b6699ef472677f9","proof_scope":"Pattern IR validation + generic chain-space/repeat proof + R8 shaping proof + compiler agreement fixtures + fail-closed generated PDF gate","test_status":"space-coverage negative fixtures independently passed previously; compiler fixtures are committed; generated PDF gate is code-reviewed but browser runtime verification remains pending","revenue":"no verified revenue"},
+  "next_actions":["Remove writtenFor() and graph.written hand-authored source from lace-flower-engine.js","After graph validation, compile written output from CrochetInstructionCompiler and refuse generation if compiler cannot compile validated IR","Add agreement assertion against actual generator-produced graph, not only fixture graph","Add gauge/finished-size proof before any design family can become VERIFIED/sellable","Verify the fail-closed PDF behavior in browser/production after deployment"],
   "revenue_status":"no verified revenue",
   "owner_escalations":[],
   "run_log":[
@@ -25,6 +25,7 @@
     {"at":"2026-08-17T02:03:50+03:00","result":"Integrated generic space/repeat validator into browser/export validation path.","commit":"e4035439add47de80422cb1d2f9015bdcfce8f31","owner_action_required":false},
     {"at":"2026-08-17T03:04:55+03:00","result":"Executed generic space-coverage tests independently; valid accepted and three broken constructions rejected.","owner_action_required":false},
     {"at":"2026-08-17T04:01:50+03:00","result":"Implemented Pattern Instruction Compiler v1 and changed guided written/PDF output to read compiler text derived from validated Pattern IR.","commit":"6ba8f087510fb62f74559d304fdf09d06ddf4a06","owner_action_required":false},
-    {"at":"2026-08-17T05:01:49+03:00","result":"Added executable chart/written compiler agreement fixtures and corrected nonstandard pluralized stitch abbreviation output.","commit":"65785b910a352ebc7f99b0d39cf25022ee2bae1b","owner_action_required":false}
+    {"at":"2026-08-17T05:01:49+03:00","result":"Added executable chart/written compiler agreement fixtures and corrected nonstandard pluralized stitch abbreviation output.","commit":"65785b910a352ebc7f99b0d39cf25022ee2bae1b","owner_action_required":false},
+    {"at":"2026-08-17T06:00:00+03:00","result":"Made generated PDF export fail closed: invalid layout/construction or unsupported instruction compilation is blocked instead of falling back to generic PDF export.","commit":"dbaaa760060015a7442989f75b6699ef472677f9","owner_action_required":false}
   ]
 }
