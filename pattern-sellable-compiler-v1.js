@@ -2,14 +2,17 @@
 (()=>{
   'use strict';
   const ROOT=typeof globalThis!=='undefined'?globalThis:window;
-  const VERSION='1.0.0';
+  const VERSION='1.1.0';
   const fail=(code,message)=>({code,message});
   function empiricalSizeEvidence(graph){
     const e=graph?.meta?.measurementEvidence||graph?.measurementEvidence;
     if(!e||e.empirical!==true)return {ok:false,error:fail('EMPIRICAL_SIZE_EVIDENCE_MISSING','Sellable output requires a physically measured crochet sample; rendered/grid dimensions are not gauge evidence.')};
+    if(e.method!=='physical_sample')return {ok:false,error:fail('EMPIRICAL_MEASUREMENT_METHOD_INVALID','Measurement evidence must come from a physical crochet sample, not renderer/grid estimation.')};
     if(!(Number.isFinite(e.finishedWidth)&&e.finishedWidth>0))return {ok:false,error:fail('EMPIRICAL_FINISHED_WIDTH_MISSING','Measured finished width must be a positive number.')};
     if(!['cm','in'].includes(e.unit))return {ok:false,error:fail('EMPIRICAL_SIZE_UNIT_INVALID','Measured finished-size unit must be cm or in.')};
     if(!e.yarn||!e.hook||!e.blocking)return {ok:false,error:fail('EMPIRICAL_SAMPLE_CONTEXT_MISSING','Measurement evidence must record yarn, hook and blocking state.')};
+    if(!e.sampleId||typeof e.sampleId!=='string')return {ok:false,error:fail('EMPIRICAL_SAMPLE_ID_MISSING','Physical sample evidence must have a sample identifier so the measurement is traceable.')};
+    if(!e.measuredAt||Number.isNaN(Date.parse(e.measuredAt)))return {ok:false,error:fail('EMPIRICAL_MEASURED_AT_INVALID','Physical sample evidence must record a valid measurement date/time.')};
     return {ok:true,evidence:{...e}};
   }
   function compile(graph){
