@@ -1,54 +1,29 @@
 {
-  "company": "Crochet Profit Company",
-  "mission": "User design intent -> validated crochet construction -> executable pattern -> professional PDF -> paid value",
-  "status": "active",
-  "operating_file_version": 6,
-  "updated_at": "2026-08-17T03:04:55+03:00",
-  "current_stage": "pre-product / correctness architecture",
-  "current_bottleneck": "Define and implement an instruction compiler that reads only validated Pattern IR/proof data, then make guided written instructions and PDF consume that same source of truth.",
-  "product_truth": {
-    "verified_arbitrary_crochet": false,
-    "support_policy": ["VERIFIED", "BETA", "UNSUPPORTED"],
-    "renderer_is_source_of_truth": false,
-    "validated_pattern_ir_is_source_of_truth": true
-  },
-  "recent_execution": [
+  "company":"Crochet Profit Company",
+  "mission":"User design intent -> validated crochet construction -> executable pattern -> professional PDF -> paid value",
+  "status":"active",
+  "operating_file_version":7,
+  "updated_at":"2026-08-17T04:01:50+03:00",
+  "current_stage":"pre-product / correctness architecture",
+  "current_bottleneck":"Prove chart/written agreement with executable compiler tests, then remove the remaining hand-authored generator writtenFor path so every user-visible instruction is compiler-derived.",
+  "product_truth":{"verified_arbitrary_crochet":false,"support_policy":["VERIFIED","BETA","UNSUPPORTED"],"renderer_is_source_of_truth":false,"validated_pattern_ir_is_source_of_truth":true},
+  "recent_execution":[
     "Added generic crochet Pattern IR validator and stitch-math coverage contracts",
-    "Added R8 proof: 85 R7 base stitches -> 95 R8 sc, +10 net increase, full base coverage, max multiplicity 3",
-    "Added generic chain-space/repeat proof contracts for R3/R5/R7 and negative fixtures",
-    "Loaded pattern-space-coverage-v1.js in the browser before the lace engine/constructability layer",
-    "Removed duplicate lace-local space validation from the export gate",
-    "Independently executed pattern-space-coverage-v1 negative fixtures under Node; valid five-space repeat passed and missing-body, uncovered-space, and outside-base-round cases were all rejected as intended"
+    "Added generic chain-space/repeat proof for R3/R5/R7 and independently passing negative fixtures",
+    "Added Pattern Instruction Compiler v1 that refuses unvalidated Pattern IR and derives lace round text/counts from graph nodes/spaces/params",
+    "Loaded the compiler in the browser before the generator",
+    "Changed guided written display/PDF export to consume compiler output from validated activeCrochetGraph rather than a hard-coded PDF pattern string"
   ],
-  "evidence": {
-    "latest_product_commit": "e4035439add47de80422cb1d2f9015bdcfce8f31",
-    "generic_space_validator_commit": "228db752241ed1ca7cc5bf471ab17a2aaff3a93f",
-    "negative_fixture_commit": "1eb89ecee095fb2b5b230e732ff2533d5ed32642",
-    "proof_scope": "generic browser-loaded chain-space/repeat proof for R3/R5/R7 plus generic Pattern Core stitch-to-stitch shaping proof for R8",
-    "space_repeat_proof": {
-      "R3": "5 R2 chain spaces -> 5 repeats -> 5*(innerDc+4) counted body stitches",
-      "R5": "5 R4 chain spaces -> 5 repeats -> 55 counted body stitches",
-      "R7": "5 R6 chain spaces -> 5 repeats -> 85 counted body stitches"
-    },
-    "r8_proof": {"base": 85, "output": 95, "delta": 10},
-    "test_status": "independent Node execution passed on 2026-08-17: valid fixture accepted; missing repeat-body stitch rejected with output/body failures; fully uncovered base space rejected with uncovered/repeat failures; wrong-base-round space consumption rejected with OUTSIDE_BASE_SPACE",
-    "revenue": "no verified revenue"
-  },
-  "next_actions": [
-    "Define an instruction compiler contract that refuses unvalidated Pattern IR",
-    "Compile row/round written instructions from Pattern IR nodes, repeat/coverage proofs, terminology and construction metadata",
-    "Make guided written instructions consume compiler output",
-    "Make PDF export consume the same validated instruction/chart source",
-    "Add chart/written agreement tests before expanding design families",
-    "Do not scale acquisition before outputs are trustworthy"
-  ],
-  "revenue_status": "no verified revenue",
-  "owner_escalations": [],
-  "run_log": [
-    {"at":"2026-08-16T23:05:00+03:00","result":"Implemented first generator-side machine-checkable shaping proof for lace R8 and made constructability require Pattern Core to accept it.","commit":"b28f3fca7273feeeb6031d508022fadf3ded4ee7","owner_action_required":false},
-    {"at":"2026-08-17T00:20:00+03:00","result":"Extended construction proof to chain-space-fed repeat rounds R3/R5/R7; each petal body now proves exact space consumption, repeat closure and counted output before export can pass constructability.","commit":"b81f948da23898ac880dea44854a0fed47607d2d","owner_action_required":false},
-    {"at":"2026-08-17T01:08:00+03:00","result":"Promoted chain-space/repeat proof logic into a generic reusable product module and added negative fixtures that deliberately break repeat body count, base-space coverage and base-round isolation.","commit":"1eb89ecee095fb2b5b230e732ff2533d5ed32642","owner_action_required":false},
-    {"at":"2026-08-17T02:03:50+03:00","result":"Integrated the generic space/repeat validator into the actual browser/export validation path and removed the duplicate lace-local validator, so export now depends on reusable Pattern IR proof infrastructure.","commit":"e4035439add47de80422cb1d2f9015bdcfce8f31","owner_action_required":false},
-    {"at":"2026-08-17T03:04:55+03:00","result":"Executed generic space-coverage tests independently under Node. Positive fixture passed; three deliberately broken construction cases were rejected with the expected proof failures. Correctness gate is now evidenced independently, so the next constraint moves to compiling written instructions/PDF from validated Pattern IR.","owner_action_required":false}
+  "evidence":{"latest_product_commit":"6ba8f087510fb62f74559d304fdf09d06ddf4a06","instruction_compiler_commit":"073017b1faf90283051b77cf372f038bcb90e2e8","browser_loader_commit":"7552170c6a0dd7543cd70a9763c89cb7318e14cf","proof_scope":"Pattern IR validation + generic chain-space/repeat proof + R8 shaping proof; written/PDF consumer now compiler-backed","test_status":"space-coverage negative fixtures independently passed previously; compiler executable agreement tests not yet added in this run","revenue":"no verified revenue"},
+  "next_actions":["Add executable instruction-compiler fixtures proving invalid IR is refused and parameter/count changes propagate to written output","Add chart/written agreement assertions against validated Pattern IR facts","Remove lace generator writtenFor hand-authored output and compile immediately after validation","Ensure PDF refuses unsupported/unvalidated patterns instead of silently presenting authoritative written output","Then expand construction families only after this single-source contract is proven"],
+  "revenue_status":"no verified revenue",
+  "owner_escalations":[],
+  "run_log":[
+    {"at":"2026-08-16T23:05:00+03:00","result":"Implemented first generator-side machine-checkable shaping proof for lace R8.","commit":"b28f3fca7273feeeb6031d508022fadf3ded4ee7","owner_action_required":false},
+    {"at":"2026-08-17T00:20:00+03:00","result":"Extended construction proof to chain-space-fed repeat rounds R3/R5/R7.","commit":"b81f948da23898ac880dea44854a0fed47607d2d","owner_action_required":false},
+    {"at":"2026-08-17T01:08:00+03:00","result":"Promoted chain-space/repeat proof into generic reusable module and added negative fixtures.","commit":"1eb89ecee095fb2b5b230e732ff2533d5ed32642","owner_action_required":false},
+    {"at":"2026-08-17T02:03:50+03:00","result":"Integrated generic space/repeat validator into browser/export validation path.","commit":"e4035439add47de80422cb1d2f9015bdcfce8f31","owner_action_required":false},
+    {"at":"2026-08-17T03:04:55+03:00","result":"Executed generic space-coverage tests independently; valid accepted and three broken constructions rejected.","owner_action_required":false},
+    {"at":"2026-08-17T04:01:50+03:00","result":"Implemented Pattern Instruction Compiler v1 and changed guided written/PDF output to read compiler text derived from validated Pattern IR, eliminating the PDF's independent hard-coded written-pattern source.","commit":"6ba8f087510fb62f74559d304fdf09d06ddf4a06","owner_action_required":false}
   ]
 }
