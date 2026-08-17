@@ -8,22 +8,24 @@
     bobble:{name:'Bobble',abbr:'bo'}, cluster:{name:'Cluster',abbr:'cl'}, shell:{name:'Shell',abbr:'sh'}, ring:{name:'Magic Ring',abbr:'MR'}
   };
 
-  // Generated charts are grid-native. The symbol CENTER stays on an integer grid point,
-  // while the rendered symbol may span multiple cells according to stitch height.
+  // Generated charts are grid-native. The symbol CENTER stays on an integer 24px grid point.
+  // Visual glyphs intentionally span multiple cells for tall stitches: grid spacing is geometry,
+  // not a cap on symbol size. Floors follow standard crochet-chart anatomy (oval chain, X sc,
+  // T/crossed stems for hdc/dc/tr/dtr) and are sized to remain legible at native 100% zoom.
   const metrics = {
-    chain:{cellWidth:1,cellHeight:1,visualWidthPx:20,visualHeightPx:12,anchorOffsetY:0},
-    slip:{cellWidth:1,cellHeight:1,visualWidthPx:10,visualHeightPx:10,anchorOffsetY:0},
-    single:{cellWidth:1,cellHeight:1,visualWidthPx:18,visualHeightPx:18,anchorOffsetY:8},
-    half:{cellWidth:1,cellHeight:1.5,visualWidthPx:18,visualHeightPx:30,anchorOffsetY:14},
-    double:{cellWidth:1,cellHeight:2,visualWidthPx:18,visualHeightPx:42,anchorOffsetY:20},
-    treble:{cellWidth:1,cellHeight:2.5,visualWidthPx:18,visualHeightPx:54,anchorOffsetY:26},
-    dtr:{cellWidth:1,cellHeight:3,visualWidthPx:18,visualHeightPx:66,anchorOffsetY:32},
-    picot:{cellWidth:1,cellHeight:1.5,visualWidthPx:20,visualHeightPx:30,anchorOffsetY:14},
-    puff:{cellWidth:1.5,cellHeight:2,visualWidthPx:30,visualHeightPx:42,anchorOffsetY:20},
-    bobble:{cellWidth:1.5,cellHeight:2,visualWidthPx:30,visualHeightPx:42,anchorOffsetY:20},
-    cluster:{cellWidth:1.5,cellHeight:2,visualWidthPx:30,visualHeightPx:42,anchorOffsetY:20},
-    shell:{cellWidth:2,cellHeight:2,visualWidthPx:42,visualHeightPx:42,anchorOffsetY:20},
-    ring:{cellWidth:1.5,cellHeight:1.5,visualWidthPx:28,visualHeightPx:28,anchorOffsetY:0}
+    chain:{cellWidth:1.25,cellHeight:1,visualWidthPx:30,visualHeightPx:18,anchorOffsetY:0},
+    slip:{cellWidth:1,cellHeight:1,visualWidthPx:18,visualHeightPx:18,anchorOffsetY:0},
+    single:{cellWidth:1.25,cellHeight:1.25,visualWidthPx:28,visualHeightPx:28,anchorOffsetY:8},
+    half:{cellWidth:1.25,cellHeight:2,visualWidthPx:30,visualHeightPx:44,anchorOffsetY:14},
+    double:{cellWidth:1.25,cellHeight:2.5,visualWidthPx:30,visualHeightPx:58,anchorOffsetY:20},
+    treble:{cellWidth:1.25,cellHeight:3,visualWidthPx:30,visualHeightPx:70,anchorOffsetY:26},
+    dtr:{cellWidth:1.5,cellHeight:3.5,visualWidthPx:32,visualHeightPx:82,anchorOffsetY:32},
+    picot:{cellWidth:1.5,cellHeight:2,visualWidthPx:32,visualHeightPx:42,anchorOffsetY:14},
+    puff:{cellWidth:2,cellHeight:2.5,visualWidthPx:42,visualHeightPx:58,anchorOffsetY:20},
+    bobble:{cellWidth:2,cellHeight:2.5,visualWidthPx:42,visualHeightPx:58,anchorOffsetY:20},
+    cluster:{cellWidth:2,cellHeight:2.5,visualWidthPx:42,visualHeightPx:58,anchorOffsetY:20},
+    shell:{cellWidth:2.5,cellHeight:2.5,visualWidthPx:54,visualHeightPx:58,anchorOffsetY:20},
+    ring:{cellWidth:1.75,cellHeight:1.75,visualWidthPx:38,visualHeightPx:38,anchorOffsetY:0}
   };
   for (const [type,m] of Object.entries(metrics)) Object.assign(m,{type,centerX:.5,centerY:.5,gridCellPx:CELL,anchorOffsetX:0});
 
@@ -54,6 +56,8 @@
       if(!Number.isInteger(it.gridCol)||!Number.isInteger(it.gridRow)) errors.push(`${it.id}: non-integer grid coordinate`);
       if(!metrics[it.type]) errors.push(`${it.id}: missing stitch metrics for ${it.type}`);
       if(Math.abs(it.xPx-it.gridCol*CELL)>.001||Math.abs(it.yPx-it.gridRow*CELL)>.001) errors.push(`${it.id}: pixel position is not derived from grid`);
+      const m=metrics[it.type];
+      if(m && (m.visualWidthPx < 18 || m.visualHeightPx < 18)) errors.push(`${it.id}: generated glyph below readability floor`);
     }
     return {ok:!errors.length,errors};
   }
@@ -82,11 +86,11 @@
         const el=els[index]; if(!el)return;
         const m=metrics[it.type]||metrics.single;
         el.style.left=(it.gridCol*CELL)+'px';el.style.top=(it.gridRow*CELL)+'px';
-        el.style.width=m.visualWidthPx+'px';el.style.height=m.visualHeightPx+'px';el.style.zIndex='3';
+        el.style.width=m.visualWidthPx+'px';el.style.height=m.visualHeightPx+'px';el.style.zIndex='3';el.style.opacity='1';
         const svg=el.querySelector('svg');
-        if(svg){svg.setAttribute('width',m.visualWidthPx);svg.setAttribute('height',m.visualHeightPx);svg.style.width=m.visualWidthPx+'px';svg.style.height=m.visualHeightPx+'px';svg.style.display='block';}
+        if(svg){svg.setAttribute('width',m.visualWidthPx);svg.setAttribute('height',m.visualHeightPx);svg.setAttribute('stroke','#050505');svg.style.width=m.visualWidthPx+'px';svg.style.height=m.visualHeightPx+'px';svg.style.display='block';svg.style.opacity='1';}
       });
-      const check=validateGeneratedGrid(items);board.dataset.generatedGridValid=check.ok?'true':'false';
+      const check=validateGeneratedGrid(items);board.dataset.generatedGridValid=check.ok?'true':'false';board.dataset.generatedGlyphReadability=check.ok?'PASS':'FAIL';
       if(!check.ok) console.error('Generated grid validation failed',check.errors);
     };
   }
