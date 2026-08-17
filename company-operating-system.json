@@ -1,25 +1,45 @@
 {
-  "company":"Crochet Profit Company",
-  "mission":"User design intent -> validated crochet construction -> executable pattern -> professional PDF -> paid value",
-  "status":"active",
-  "operating_file_version":10,
-  "updated_at":"2026-08-17T07:02:00+03:00",
-  "current_stage":"pre-product / correctness architecture",
-  "current_bottleneck":"Wire compileSellable() into generated PDF and generator output so written instructions require Pattern Core + space/repeat + constructability + layout proofs; then remove writtenFor()/graph.written from lace-flower-engine.js and add gauge/finished-size proof.",
-  "product_truth":{"verified_arbitrary_crochet":false,"support_policy":["VERIFIED","BETA","UNSUPPORTED"],"renderer_is_source_of_truth":false,"validated_pattern_ir_is_source_of_truth":true,"generated_pdf_fail_closed":true,"sellable_written_requires_all_proof_layers":true},
-  "recent_execution":[
+  "company": "Crochet Profit Company",
+  "mission": "User design intent -> validated crochet construction -> executable pattern -> professional PDF -> paid value",
+  "status": "active",
+  "operating_file_version": 11,
+  "updated_at": "2026-08-17T08:03:00+03:00",
+  "current_stage": "pre-product / correctness architecture",
+  "current_bottleneck": "Remove writtenFor()/graph.written from lace-flower-engine.js so generator/modal written output has no hand-authored parallel source; then add gauge/finished-size proof and verify actual generator graph through the full sellable gate in browser/production.",
+  "product_truth": {
+    "verified_arbitrary_crochet": false,
+    "support_policy": ["VERIFIED", "BETA", "UNSUPPORTED"],
+    "renderer_is_source_of_truth": false,
+    "validated_pattern_ir_is_source_of_truth": true,
+    "generated_pdf_fail_closed": true,
+    "sellable_written_requires_all_proof_layers": true,
+    "generated_pdf_uses_sellable_compiler_gate": true
+  },
+  "recent_execution": [
     "Added generic crochet Pattern IR validator and stitch-math coverage contracts",
     "Added generic chain-space/repeat proof for R3/R5/R7 and independently passing negative fixtures",
     "Added Pattern Instruction Compiler v1 and changed guided written/PDF consumers to compiler output",
     "Added executable compiler agreement fixtures and fixed nonstandard pluralized stitch abbreviation output",
     "Closed generated-PDF fallback when construction/layout validation or instruction compilation fails",
-    "Added compileSellable proof gate: sellable written output now has an API that requires Pattern Core, space/repeat, constructability and layout proofs before compilation; added negative gate tests for each missing proof layer"
+    "Added compileSellable proof gate requiring Pattern Core, space/repeat, constructability and layout proofs",
+    "Wired generated PDF and synced written output to compileSellable(); PDF now refuses export unless every existing sellable proof layer is present"
   ],
-  "evidence":{"latest_product_commit":"50be8387b33be815c02da12f20f6cba6d17f0219","proof_scope":"Pattern IR validation + generic chain-space/repeat proof + R8 shaping proof + compiler agreement fixtures + fail-closed generated PDF gate + sellable instruction multi-proof gate","test_status":"space-coverage negative fixtures independently passed previously; compiler agreement and new sellable-proof-gate tests are committed but this run did not independently execute Node; browser runtime verification remains pending","revenue":"no verified revenue"},
-  "next_actions":["Change guided PDF generated-pattern path from compile() to compileSellable() after constructability/layout proof is attached","Remove writtenFor() and graph.written hand-authored source from lace-flower-engine.js","After graph validation/proof, compile modal written output from CrochetInstructionCompiler only","Add agreement assertion against actual generator-produced graph, not only fixture graph","Add gauge/finished-size proof before any design family can become VERIFIED/sellable","Verify fail-closed PDF and sellable compiler behavior in browser/production after deployment"],
-  "revenue_status":"no verified revenue",
-  "owner_escalations":[],
-  "run_log":[
+  "evidence": {
+    "latest_product_commit": "9a2954b8edd36a0254b680243eea949e7f4937ea",
+    "proof_scope": "Pattern IR validation + generic chain-space/repeat proof + R8 shaping proof + compiler agreement fixtures + fail-closed generated PDF + sellable multi-proof instruction gate wired into PDF",
+    "test_status": "space-coverage negative fixtures independently passed previously; compiler/sellable-gate tests are committed; browser runtime verification of the new PDF gate remains pending",
+    "revenue": "no verified revenue"
+  },
+  "next_actions": [
+    "Remove writtenFor() and graph.written hand-authored source from lace-flower-engine.js",
+    "Compile modal written output only after the graph has the required validation/proof state",
+    "Add agreement assertion against actual generator-produced graph, not only fixture graph",
+    "Add gauge/finished-size proof before any design family can become VERIFIED/sellable",
+    "Verify fail-closed PDF and sellable compiler behavior in browser/production after deployment"
+  ],
+  "revenue_status": "no verified revenue",
+  "owner_escalations": [],
+  "run_log": [
     {"at":"2026-08-16T23:05:00+03:00","result":"Implemented first generator-side machine-checkable shaping proof for lace R8.","commit":"b28f3fca7273feeeb6031d508022fadf3ded4ee7","owner_action_required":false},
     {"at":"2026-08-17T00:20:00+03:00","result":"Extended construction proof to chain-space-fed repeat rounds R3/R5/R7.","commit":"b81f948da23898ac880dea44854a0fed47607d2d","owner_action_required":false},
     {"at":"2026-08-17T01:08:00+03:00","result":"Promoted chain-space/repeat proof into generic reusable module and added negative fixtures.","commit":"1eb89ecee095fb2b5b230e732ff2533d5ed32642","owner_action_required":false},
@@ -28,6 +48,7 @@
     {"at":"2026-08-17T04:01:50+03:00","result":"Implemented Pattern Instruction Compiler v1 and changed guided written/PDF output to read compiler text derived from validated Pattern IR.","commit":"6ba8f087510fb62f74559d304fdf09d06ddf4a06","owner_action_required":false},
     {"at":"2026-08-17T05:01:49+03:00","result":"Added executable chart/written compiler agreement fixtures and corrected nonstandard pluralized stitch abbreviation output.","commit":"65785b910a352ebc7f99b0d39cf25022ee2bae1b","owner_action_required":false},
     {"at":"2026-08-17T06:00:00+03:00","result":"Made generated PDF export fail closed: invalid layout/construction or unsupported instruction compilation is blocked instead of falling back to generic PDF export.","commit":"dbaaa760060015a7442989f75b6699ef472677f9","owner_action_required":false},
-    {"at":"2026-08-17T07:02:00+03:00","result":"Added sellable instruction compilation gate requiring Pattern Core, space/repeat, constructability and layout proof layers; added negative tests for every missing proof layer.","commit":"50be8387b33be815c02da12f20f6cba6d17f0219","owner_action_required":false}
+    {"at":"2026-08-17T07:02:00+03:00","result":"Added sellable instruction compilation gate requiring Pattern Core, space/repeat, constructability and layout proof layers; added negative tests for every missing proof layer.","commit":"50be8387b33be815c02da12f20f6cba6d17f0219","owner_action_required":false},
+    {"at":"2026-08-17T08:03:00+03:00","result":"Wired generated PDF and synced written output to compileSellable(), blocking export unless every existing sellable proof layer is present.","commit":"9a2954b8edd36a0254b680243eea949e7f4937ea","owner_action_required":false}
   ]
 }
