@@ -1,38 +1,5 @@
-// Sellable Pattern Compiler v1 — one fail-closed gate from Pattern IR to publishable written output.
-(()=>{
-  'use strict';
-  const ROOT=typeof globalThis!=='undefined'?globalThis:window;
-  const VERSION='1.1.0';
-  const fail=(code,message)=>({code,message});
-  function empiricalSizeEvidence(graph){
-    const e=graph?.meta?.measurementEvidence||graph?.measurementEvidence;
-    if(!e||e.empirical!==true)return {ok:false,error:fail('EMPIRICAL_SIZE_EVIDENCE_MISSING','Sellable output requires a physically measured crochet sample; rendered/grid dimensions are not gauge evidence.')};
-    if(e.method!=='physical_sample')return {ok:false,error:fail('EMPIRICAL_MEASUREMENT_METHOD_INVALID','Measurement evidence must come from a physical crochet sample, not renderer/grid estimation.')};
-    if(!(Number.isFinite(e.finishedWidth)&&e.finishedWidth>0))return {ok:false,error:fail('EMPIRICAL_FINISHED_WIDTH_MISSING','Measured finished width must be a positive number.')};
-    if(!['cm','in'].includes(e.unit))return {ok:false,error:fail('EMPIRICAL_SIZE_UNIT_INVALID','Measured finished-size unit must be cm or in.')};
-    if(!e.yarn||!e.hook||!e.blocking)return {ok:false,error:fail('EMPIRICAL_SAMPLE_CONTEXT_MISSING','Measurement evidence must record yarn, hook and blocking state.')};
-    if(!e.sampleId||typeof e.sampleId!=='string')return {ok:false,error:fail('EMPIRICAL_SAMPLE_ID_MISSING','Physical sample evidence must have a sample identifier so the measurement is traceable.')};
-    if(!e.measuredAt||Number.isNaN(Date.parse(e.measuredAt)))return {ok:false,error:fail('EMPIRICAL_MEASURED_AT_INVALID','Physical sample evidence must record a valid measurement date/time.')};
-    return {ok:true,evidence:{...e}};
-  }
-  function compile(graph){
-    const errors=[];
-    if(!graph||typeof graph!=='object')return {ok:false,version:VERSION,errors:[fail('PATTERN_IR_MISSING','No Pattern IR supplied.')]};
-    const core=typeof ROOT.validateCrochetPatternGraph==='function'?ROOT.validateCrochetPatternGraph(graph,{level:'sellable'}):{ok:false,errors:[fail('PATTERN_CORE_UNAVAILABLE','Pattern Core validator unavailable.')]};
-    graph.coreValidation=core;if(!core.ok)errors.push(...(core.errors||[]));
-    const space=typeof ROOT.validateCrochetSpaceCoverageContracts==='function'?ROOT.validateCrochetSpaceCoverageContracts(graph):{ok:false,errors:[fail('SPACE_CORE_UNAVAILABLE','Space/repeat validator unavailable.')]};
-    graph.spaceCoreValidation=space;if(!space.ok)errors.push(...(space.errors||[]));
-    if(graph.constructability?.ok!==true)errors.push(fail('CONSTRUCTABILITY_PROOF_MISSING','Constructability proof has not passed.'));
-    if(graph.layoutValidation?.ok!==true)errors.push(fail('LAYOUT_PROOF_MISSING','Layout proof has not passed.'));
-    const measured=empiricalSizeEvidence(graph);if(!measured.ok)errors.push(measured.error);
-    let written=null;
-    if(!errors.length){try{if(!ROOT.CrochetInstructionCompiler?.compileSellable)throw new Error('instruction compiler unavailable');written=ROOT.CrochetInstructionCompiler.compileSellable(graph);}catch(e){errors.push(fail('WRITTEN_COMPILATION_FAILED',String(e?.message||e)));}}
-    const out={ok:errors.length===0,version:VERSION,errors,coreValidation:core,spaceCoreValidation:space,constructability:graph.constructability||null,layoutValidation:graph.layoutValidation||null,measurementEvidence:measured.ok?measured.evidence:null,written};
-    graph.sellableCompilation=out;return out;
-  }
-  const API={VERSION,compile,empiricalSizeEvidence};ROOT.CROCHET_SELLABLE_COMPILER_VERSION=VERSION;ROOT.compileSellableCrochetPattern=compile;
-  // Import is the proof-flow boundary. Constructability runs first; this compiler then stamps a real
-  // sellableCompilation (normally FAIL while empirical gauge/size evidence is absent).
-  if(typeof document!=='undefined')document.addEventListener('click',e=>{if(e.target?.id==='laceImport')setTimeout(()=>{if(ROOT.activeCrochetGraph?.kind==='lace-flower')compile(ROOT.activeCrochetGraph);},260);},true);
-  if(typeof module!=='undefined'&&module.exports)module.exports=API;
-})();
+// Sellable Pattern Compiler v1 — fail-closed Pattern IR -> publishable output.
+(()=>{'use strict';const ROOT=typeof globalThis!=='undefined'?globalThis:window,VERSION='1.2.0',fail=(code,message)=>({code,message});
+function empiricalSizeEvidence(g){const e=g?.meta?.measurementEvidence||g?.measurementEvidence;if(!e||e.empirical!==true)return{ok:false,error:fail('EMPIRICAL_SIZE_EVIDENCE_MISSING','Sellable output requires a physically measured crochet sample; rendered/grid dimensions are not gauge evidence.')};if(e.method!=='physical_sample')return{ok:false,error:fail('EMPIRICAL_MEASUREMENT_METHOD_INVALID','Measurement evidence must come from a physical crochet sample.')};if(!(Number.isFinite(e.finishedWidth)&&e.finishedWidth>0))return{ok:false,error:fail('EMPIRICAL_FINISHED_WIDTH_MISSING','Measured finished width must be positive.')};if(!['cm','in'].includes(e.unit))return{ok:false,error:fail('EMPIRICAL_SIZE_UNIT_INVALID','Unit must be cm or in.')};if(!e.yarn||!e.hook||!e.blocking)return{ok:false,error:fail('EMPIRICAL_SAMPLE_CONTEXT_MISSING','Record yarn, hook and blocking state.')};if(!e.sampleId||typeof e.sampleId!=='string')return{ok:false,error:fail('EMPIRICAL_SAMPLE_ID_MISSING','Physical sample needs a traceable sample ID.')};if(!e.measuredAt||Number.isNaN(Date.parse(e.measuredAt)))return{ok:false,error:fail('EMPIRICAL_MEASURED_AT_INVALID','Record a valid measurement date/time.')};return{ok:true,evidence:{...e}}}
+function compile(g){const errors=[];if(!g||typeof g!=='object')return{ok:false,version:VERSION,errors:[fail('PATTERN_IR_MISSING','No Pattern IR supplied.')]};const core=typeof ROOT.validateCrochetPatternGraph==='function'?ROOT.validateCrochetPatternGraph(g,{level:'sellable'}):{ok:false,errors:[fail('PATTERN_CORE_UNAVAILABLE','Pattern Core unavailable.')]};g.coreValidation=core;if(!core.ok)errors.push(...(core.errors||[]));const space=typeof ROOT.validateCrochetSpaceCoverageContracts==='function'?ROOT.validateCrochetSpaceCoverageContracts(g):{ok:false,errors:[fail('SPACE_CORE_UNAVAILABLE','Space/repeat validator unavailable.')]};g.spaceCoreValidation=space;if(!space.ok)errors.push(...(space.errors||[]));if(g.constructability?.ok!==true)errors.push(fail('CONSTRUCTABILITY_PROOF_MISSING','Constructability proof has not passed.'));if(g.layoutValidation?.ok!==true)errors.push(fail('LAYOUT_PROOF_MISSING','Layout proof has not passed.'));const measured=empiricalSizeEvidence(g);if(!measured.ok)errors.push(measured.error);let written=null,agreement=null;if(!errors.length){try{if(!ROOT.CrochetInstructionCompiler?.compileSellable)throw new Error('instruction compiler unavailable');written=ROOT.CrochetInstructionCompiler.compileSellable(g);if(!ROOT.CrochetChartAgreement?.validate)throw new Error('chart agreement validator unavailable');agreement=ROOT.CrochetChartAgreement.validate(g,written);if(!agreement.ok)errors.push(fail('CHART_WRITTEN_AGREEMENT_FAILED',agreement.errors.join(' · ')));}catch(e){errors.push(fail('WRITTEN_COMPILATION_FAILED',String(e?.message||e)))}}const out={ok:!errors.length,version:VERSION,errors,coreValidation:core,spaceCoreValidation:space,constructability:g.constructability||null,layoutValidation:g.layoutValidation||null,measurementEvidence:measured.ok?measured.evidence:null,written,chartWrittenAgreement:agreement};g.sellableCompilation=out;return out}
+const API={VERSION,compile,empiricalSizeEvidence};ROOT.CROCHET_SELLABLE_COMPILER_VERSION=VERSION;ROOT.compileSellableCrochetPattern=compile;if(typeof document!=='undefined')document.addEventListener('click',e=>{if(e.target?.id==='laceImport')setTimeout(()=>{if(ROOT.activeCrochetGraph?.kind==='lace-flower')compile(ROOT.activeCrochetGraph)},260)},true);if(typeof module!=='undefined'&&module.exports)module.exports=API})();
