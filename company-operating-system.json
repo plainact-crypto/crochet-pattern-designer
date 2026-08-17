@@ -2,8 +2,8 @@
   "company": "Crochet Profit Company",
   "mission": "User design intent -> validated crochet construction -> executable pattern -> professional PDF -> paid value",
   "status": "active",
-  "operating_file_version": 15,
-  "updated_at": "2026-08-17T13:00:10+03:00",
+  "operating_file_version": 16,
+  "updated_at": "2026-08-17T14:02:01+03:00",
   "current_stage": "pre-product / correctness architecture",
   "current_bottleneck": "Refactor lace-flower-engine build() to emit consumes/produces/countsAsStitch plus coverageContracts, spaceCoverageContracts and proofModel from construction logic; then remove constructability-v7.8 attachProofContracts mutation and make the audit verifier-only.",
   "product_truth": {
@@ -16,7 +16,8 @@
     "lace_generator_parallel_written_source_removed": true,
     "lace_family_status": "BETA",
     "generator_native_proof_contracts": false,
-    "finished_size_empirically_proven": false
+    "finished_size_empirically_proven": false,
+    "production_chart_readability_passed": false
   },
   "evidence": {
     "latest_product_commit": "3b6d8f7ce4306c4f09afcec56250b4692032aa29",
@@ -24,19 +25,21 @@
     "generator_audit": "lace-flower-engine.js still returns topology without proof contracts; constructability-v7.8.js attachProofContracts() still manufactures consumes/produces and coverage contracts after import.",
     "new_regression_gate": "tests/generator-native-proof-ownership.test.js requires generator-native coverageContracts, spaceCoverageContracts, proofModel, consumes, produces and countsAsStitch, and forbids attachProofContracts mutation in constructability. The current source is expected to fail this gate until the refactor is complete.",
     "size_audit": "No empirical lace sample/measurement evidence exists; do not claim finished diameter.",
-    "production_status": "Production parity not independently verified in this run.",
-    "gmail_owner_directives": "No messages from plainact@outlook.com found in this run.",
+    "production_status": "Manual production QA on 2026-08-17 confirmed the 5-petal topology imports and constructability UI reports PASS, but at 100% zoom the crochet stitch symbols are extremely small/light and the chart is not professionally readable. Treat this as a renderer/readability blocker after construction correctness; do not mistake constructability PASS for sellability.",
+    "gmail_owner_directives": "Checked plainact@outlook.com and 'Osama is saying'. New messages concern Plain Act LinkedIn publishing authorization, not Crochet Profit Company; no crochet directive received.",
     "revenue": "no verified revenue"
   },
   "recent_execution": [
     "Previously established Pattern IR, generic stitch/space/repeat validation, compiler-derived written instructions, fail-closed PDF, and sellable multi-proof gate.",
     "Previously removed hand-authored writtenFor()/graph.written source and labeled lace BETA.",
-    "This run added an executable source-level regression gate that makes proof ownership an enforceable architecture rule: generator must emit construction evidence and constructability must not manufacture it."
+    "Added an executable source-level regression gate that makes proof ownership an enforceable architecture rule: generator must emit construction evidence and constructability must not manufacture it.",
+    "Production manual QA now adds a separate visual truth: the generated five-petal geometry is recognizable and symmetric enough for inspection, but stitch symbols are too faint/small for a professional executable chart even at 100% zoom."
   ],
   "next_actions": [
     "Implement generator-native proof contracts in lace-flower-engine build().",
     "Change constructability-v7.8.js from attachProofContracts mutation to strict verification/rejection.",
     "Run generator-native-proof-ownership test plus Pattern Core, space/repeat, constructability, layout and compileSellable agreement tests on actual generator output.",
+    "After correctness passes, fix chart symbol visual scale/contrast/readability and add an executable readability/export regression check before PDF polish.",
     "Define sample-based gauge/finished-size evidence with yarn, hook, blocking and tolerance assumptions; keep lace BETA until measured.",
     "Verify fail-closed written/PDF behavior in production after deployment.",
     "Only after correctness evidence, improve PDF presentation and test willingness-to-pay; no live charging without owner approval."
@@ -46,6 +49,7 @@
   "run_log": [
     {"at":"2026-08-17T10:51:40+03:00","result":"Removed hand-authored generator written path, locked pre-proof written output, labeled lace BETA, and added Pattern IR source-of-truth guard.","commit":"4ded74a12b9c6d2aecc1b7dbfc0d05f72baa1b65","owner_action_required":false},
     {"at":"2026-08-17T11:05:23+03:00","result":"Confirmed proof contracts are injected post-build and no empirical finished-size evidence exists.","owner_action_required":false},
-    {"at":"2026-08-17T13:00:10+03:00","result":"Added executable regression gate enforcing generator-native crochet proof ownership and verifier-only constructability architecture. Current implementation intentionally remains BETA and is expected to fail this new gate until refactored.","commit":"3b6d8f7ce4306c4f09afcec56250b4692032aa29","owner_action_required":false}
+    {"at":"2026-08-17T13:00:10+03:00","result":"Added executable regression gate enforcing generator-native crochet proof ownership and verifier-only constructability architecture. Current implementation intentionally remains BETA and is expected to fail this new gate until refactored.","commit":"3b6d8f7ce4306c4f09afcec56250b4692032aa29","owner_action_required":false},
+    {"at":"2026-08-17T14:02:01+03:00","result":"Recorded production manual QA evidence: topology import/constructability UI passes, but chart symbols remain too small/light for professional readability at 100% zoom. Confirmed no new crochet-specific owner directive; proof ownership remains the primary blocker ahead of visual remediation.","owner_action_required":false}
   ]
 }
