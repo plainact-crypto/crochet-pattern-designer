@@ -23,16 +23,13 @@
     if(graph.layoutValidation?.ok!==true)errors.push(fail('LAYOUT_PROOF_MISSING','Layout proof has not passed.'));
     const measured=empiricalSizeEvidence(graph);if(!measured.ok)errors.push(measured.error);
     let written=null;
-    if(!errors.length){
-      try{
-        if(!ROOT.CrochetInstructionCompiler?.compileSellable)throw new Error('instruction compiler unavailable');
-        written=ROOT.CrochetInstructionCompiler.compileSellable(graph);
-      }catch(e){errors.push(fail('WRITTEN_COMPILATION_FAILED',String(e?.message||e)));}
-    }
+    if(!errors.length){try{if(!ROOT.CrochetInstructionCompiler?.compileSellable)throw new Error('instruction compiler unavailable');written=ROOT.CrochetInstructionCompiler.compileSellable(graph);}catch(e){errors.push(fail('WRITTEN_COMPILATION_FAILED',String(e?.message||e)));}}
     const out={ok:errors.length===0,version:VERSION,errors,coreValidation:core,spaceCoreValidation:space,constructability:graph.constructability||null,layoutValidation:graph.layoutValidation||null,measurementEvidence:measured.ok?measured.evidence:null,written};
     graph.sellableCompilation=out;return out;
   }
-  const API={VERSION,compile,empiricalSizeEvidence};
-  ROOT.CROCHET_SELLABLE_COMPILER_VERSION=VERSION;ROOT.compileSellableCrochetPattern=compile;
+  const API={VERSION,compile,empiricalSizeEvidence};ROOT.CROCHET_SELLABLE_COMPILER_VERSION=VERSION;ROOT.compileSellableCrochetPattern=compile;
+  // Import is the proof-flow boundary. Constructability runs first; this compiler then stamps a real
+  // sellableCompilation (normally FAIL while empirical gauge/size evidence is absent).
+  if(typeof document!=='undefined')document.addEventListener('click',e=>{if(e.target?.id==='laceImport')setTimeout(()=>{if(ROOT.activeCrochetGraph?.kind==='lace-flower')compile(ROOT.activeCrochetGraph);},260);},true);
   if(typeof module!=='undefined'&&module.exports)module.exports=API;
 })();
