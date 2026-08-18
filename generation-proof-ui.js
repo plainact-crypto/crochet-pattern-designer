@@ -18,12 +18,13 @@ function afterGenerate(){
   const layoutPass=!!lv&&lv.ok===true&&Number(lv.bodyCollisions||0)===0&&Number(lv.clippedSymbols||0)===0;
   const crochetPass=familyConstructionPass(g,isCoaster);
   const overall=layoutPass&&crochetPass&&written;
-  const familyName=isCoaster?'SC Coaster':'5-Petal Lace';
-  tv.textContent=`${overall?'PASS':'FAIL'} · ${familyName} · body collisions ${fmt(lv?.bodyCollisions)} · clipped symbols ${fmt(lv?.clippedSymbols)} · construction ${crochetPass?'PASS':'FAIL'} · written ${written?'PASS':'FAIL'}`;
+  const familyName=isCoaster?'SC Coaster':'5-Petal Lace',build=String(window.__CROCHET_BUILD||'unknown');
+  tv.textContent=`${overall?'PASS':'FAIL'} · ${familyName} · body collisions ${fmt(lv?.bodyCollisions)} · clipped symbols ${fmt(lv?.clippedSymbols)} · construction ${crochetPass?'PASS':'FAIL'} · written ${written?'PASS':'FAIL'} · build ${build}`;
   tv.dataset.generationProof=overall?'PASS':'FAIL';
   tv.dataset.bodyCollisions=String(lv?.bodyCollisions??'');
   tv.dataset.clippedSymbols=String(lv?.clippedSymbols??'');
-  window.__LAST_GENERATION_PROOF={family:g.kind,ok:overall,layoutPass,bodyCollisions:Number(lv?.bodyCollisions),clippedSymbols:Number(lv?.clippedSymbols),constructionPass:crochetPass,writtenPass:written,roundClosurePass:g.roundClosureValidation?.ok===true,checkedAt:new Date().toISOString()};
+  tv.dataset.build=build;
+  window.__LAST_GENERATION_PROOF={family:g.kind,ok:overall,layoutPass,bodyCollisions:Number(lv?.bodyCollisions),clippedSymbols:Number(lv?.clippedSymbols),constructionPass:crochetPass,writtenPass:written,roundClosurePass:g.roundClosureValidation?.ok===true,build,checkedAt:new Date().toISOString()};
 }
 btn.addEventListener('click',()=>setTimeout(afterGenerate,0));
 })();
