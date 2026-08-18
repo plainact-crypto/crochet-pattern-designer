@@ -2,11 +2,11 @@
   "company": "Crochet Profit Company",
   "mission": "Generate technically valid executable crochet patterns from a simple generator-only product.",
   "status": "active",
-  "operating_file_version": 43,
-  "updated_at": "2026-08-18T15:00:00+03:00",
+  "operating_file_version": 44,
+  "updated_at": "2026-08-18T16:00:00+03:00",
   "owner_deadline": "2026-08-19 Cairo time: finish the Generate Pattern product around at least two executable crochet families; report progress every hour.",
   "current_stage": "P0 product finish / two-family generator",
-  "current_bottleneck": "Both target families expose deterministic construction-engine APIs and browser runtime readiness contracts. This run removed an execution-language ambiguity in Pattern #2: the written instructions no longer say 'worked continuously' while simultaneously declaring joined rounds; they now explicitly say 'worked in joined rounds without turning', preserving the ch-1 non-counting start and slip-stitch closure semantics. Production Workers remains inaccessible from this runtime, so live render PASS is still unproven and no 100% claim is allowed.",
+  "current_bottleneck": "Both supported families have fixed construction engines, deterministic renderers, written instructions and runtime readiness contracts. This run added an exact per-generation proof line to the real product UI so a live browser generation now exposes body-collision count, clipped-symbol count, construction PASS/FAIL and written-output PASS/FAIL instead of a generic success sentence. Production Workers is still inaccessible from the current tool runtime, so independent live browser PASS remains unproven and no 100% claim is allowed.",
   "product_truth": {
     "product_scope": "pattern_generator_only",
     "manual_cad_ui_removed": true,
@@ -15,7 +15,7 @@
     "pattern_1": "5-Petal Layered Lace Flower",
     "pattern_1_status": "BETA / fixed 3/7/11 only; construction engine + source geometry evidence pass; live production render and physical execution still unproven",
     "pattern_2": "Basic Joined-Round SC Coaster",
-    "pattern_2_status": "BETA / fixed four-round 6→12→18→24 sc construction; joined-round wording clarified; engine contract and written output covered by runtime smoke test; live production render and physical execution still unproven",
+    "pattern_2_status": "BETA / fixed four-round 6→12→18→24 sc construction; engine contract, renderer geometry and written output are defined; live production render and physical execution still unproven",
     "production_chart_readability_passed": false,
     "paid_output_enabled": false
   },
@@ -31,11 +31,14 @@
     "smoke_test_load_commit": "40e726c21e6ef182b74fc81ca8c2e3e9a351630b",
     "coaster_copy_clarity_commit": "626646895595759024b26f10fc6b7967612ffb43",
     "coaster_copy_load_commit": "462a103d730f9c66ee85e919f6f973977a4dcb87",
+    "generation_proof_ui_commit": "9c5b299c3c8cf99a202e1cfc651484d51c406b9a",
+    "generation_proof_ui_load_commit": "34f1ea9fe8f1a20cac8666807649dbb7e638a5ab",
     "pattern_1_geometry_replication": "Independent replication of renderer v9 default 3/7/11 placement previously checked 385 body nodes and calculated 0 invalid overlaps and 0 clipping; source evidence only.",
+    "pattern_2_geometry_replication": "Current SC coaster renderer placement was independently recomputed from its exact radii/round counts and glyph footprints in this run; calculated 0 body overlaps before live browser execution. Source evidence only.",
     "runtime_readiness_contract": "window.__CROCHET_GENERATOR_READINESS fail-closes if either supported construction engine API is absent or violates its fixed construction/count/closure/written-output contract. Layout is still validated on actual Generate because render proof must not be faked by an engine-only smoke test.",
-    "pattern_2_instruction_clarity": "SC coaster v3.2 now states 'worked in joined rounds without turning' instead of the ambiguous 'worked continuously ... in joined rounds', avoiding confusion with spiral/continuous-round crochet terminology.",
-    "gmail_owner_directives": "Checked plainact@outlook.com and 'Osama is saying' first at ~15:00; no Crochet-specific owner email. Existing messages concern Chess Cloudflare and Plain Act LinkedIn.",
-    "production_verification": "Workers URL remains unavailable to the current web/container runtime; independent live PASS is unavailable.",
+    "visible_generation_proof": "After Generate, Technical validation now surfaces exact live renderer evidence: family, body collisions, clipped symbols, construction PASS/FAIL and written PASS/FAIL; the same evidence is stored in window.__LAST_GENERATION_PROOF.",
+    "gmail_owner_directives": "Checked plainact@outlook.com first at ~16:00; no Crochet-specific owner email. Existing owner messages concern Chess Cloudflare and Plain Act LinkedIn.",
+    "production_verification": "Workers URL remains unavailable to the current web runtime; independent live PASS is unavailable.",
     "metrics": {
       "verified_generation_success_rate": null,
       "validation_failures_observed": 2,
@@ -45,13 +48,13 @@
   "decisions": [
     "No new product surface beyond Generate Pattern before the two target families are live-proven.",
     "Pattern #1 remains fixed to 3/7/11; Pattern #2 remains fixed to four rounds until broader variants are separately proven.",
-    "Runtime readiness must prove actual generator contracts, but chart/layout remains a separate fail-closed gate on Generate.",
-    "Crochet wording must not blur joined rounds with continuous/spiral rounds.",
+    "Runtime readiness proves construction contracts; chart/layout remains a separate fail-closed gate on Generate.",
+    "The product UI must display exact collision/clipping proof so live screenshots can distinguish source confidence from production evidence.",
     "Do not weaken validation or claim 100% execution without live render plus physical/user execution evidence."
   ],
   "next_actions": [
-    "Production-browser generate Pattern #1: require layout PASS, zero clipping/genuine collisions, recognizable chart and visible written instructions.",
-    "Production-browser generate Pattern #2: require zero layout errors, visible ch-1 starts, exact 6→12→18→24 construction and unambiguous joined-round written instructions.",
+    "Production-browser generate Pattern #1 and read the new exact proof line: require body collisions 0, clipped symbols 0, construction PASS, written PASS, recognizable chart.",
+    "Production-browser generate Pattern #2 and read the new exact proof line: require body collisions 0, clipped symbols 0, construction PASS, written PASS, visible 6→12→18→24 joined-round chart.",
     "If production differs from main, diagnose deployment/cache before changing crochet logic.",
     "If a live runtime reject appears, fix only the exact failing contract/layout pair.",
     "Keep both families BETA until a physical crocheter execution sample removes hidden ambiguity."
@@ -66,7 +69,8 @@
     {"at":"2026-08-18T11:00:00+03:00","result":"Fixed Pattern #1 R6/R8 hook-position continuity.","commit":"95d2c6c1210f4867edc32d03b9e19f25b2376862"},
     {"at":"2026-08-18T12:00:00+03:00","result":"Closed hook-path continuity class for Pattern #2.","commit":"8f4245dc92259ae652bf5d855f4d008b47dcade3"},
     {"at":"2026-08-18T13:00:00+03:00","result":"Removed unproven Pattern #1 parameter breadth from user UI.","commit":"d2f3b452e49344fe9933eedf35a5e77e38cd3079"},
-    {"at":"2026-08-18T14:02:00+03:00","result":"Added browser-runtime two-family construction readiness contract covering exact fixed counts, starts/closures and compiled written output; loaded it on main. Live render proof remains blocked by Workers DNS access from runtime.","commit":"40e726c21e6ef182b74fc81ca8c2e3e9a351630b"},
-    {"at":"2026-08-18T15:00:00+03:00","result":"Removed ambiguous continuous-vs-joined wording from Pattern #2 written instructions; SC coaster now explicitly says joined rounds without turning and the updated asset is cache-busted on main.","commit":"462a103d730f9c66ee85e919f6f973977a4dcb87"}
+    {"at":"2026-08-18T14:02:00+03:00","result":"Added browser-runtime two-family construction readiness contract covering exact fixed counts, starts/closures and compiled written output; loaded it on main. Live render proof remains blocked by Workers access from runtime.","commit":"40e726c21e6ef182b74fc81ca8c2e3e9a351630b"},
+    {"at":"2026-08-18T15:00:00+03:00","result":"Removed ambiguous continuous-vs-joined wording from Pattern #2 written instructions.","commit":"462a103d730f9c66ee85e919f6f973977a4dcb87"},
+    {"at":"2026-08-18T16:00:00+03:00","result":"Added exact visible per-generation proof evidence to the product UI and independently recomputed current coaster renderer geometry at 0 source-level overlaps; live Workers PASS remains unproven.","commit":"34f1ea9fe8f1a20cac8666807649dbb7e638a5ab"}
   ]
 }
