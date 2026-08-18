@@ -2,11 +2,11 @@
   "company": "Crochet Profit Company",
   "mission": "Generate technically valid executable crochet patterns from a simple generator-only product.",
   "status": "active",
-  "operating_file_version": 44,
-  "updated_at": "2026-08-18T16:00:00+03:00",
+  "operating_file_version": 45,
+  "updated_at": "2026-08-18T17:00:00+03:00",
   "owner_deadline": "2026-08-19 Cairo time: finish the Generate Pattern product around at least two executable crochet families; report progress every hour.",
   "current_stage": "P0 product finish / two-family generator",
-  "current_bottleneck": "Both supported families have fixed construction engines, deterministic renderers, written instructions and runtime readiness contracts. This run added an exact per-generation proof line to the real product UI so a live browser generation now exposes body-collision count, clipped-symbol count, construction PASS/FAIL and written-output PASS/FAIL instead of a generic success sentence. Production Workers is still inaccessible from the current tool runtime, so independent live browser PASS remains unproven and no 100% claim is allowed.",
+  "current_bottleneck": "Both supported families have fixed construction engines, deterministic renderers, written instructions and runtime readiness contracts. This run removed a false-positive success path in the visible proof layer: SC Coaster construction PASS is no longer hardcoded true and now requires its actual generator validation plus round-closure validation. Lace proof likewise requires generator validation plus constructability audit. Production Workers remains inaccessible from the current tool runtime, so independent live browser PASS is still unproven and no 100% claim is allowed.",
   "product_truth": {
     "product_scope": "pattern_generator_only",
     "manual_cad_ui_removed": true,
@@ -15,7 +15,7 @@
     "pattern_1": "5-Petal Layered Lace Flower",
     "pattern_1_status": "BETA / fixed 3/7/11 only; construction engine + source geometry evidence pass; live production render and physical execution still unproven",
     "pattern_2": "Basic Joined-Round SC Coaster",
-    "pattern_2_status": "BETA / fixed four-round 6→12→18→24 sc construction; engine contract, renderer geometry and written output are defined; live production render and physical execution still unproven",
+    "pattern_2_status": "BETA / fixed four-round 6→12→18→24 sc construction; engine contract, renderer geometry and written output are defined; visible construction proof now fail-closes on real validation; live production render and physical execution still unproven",
     "production_chart_readability_passed": false,
     "paid_output_enabled": false
   },
@@ -33,11 +33,13 @@
     "coaster_copy_load_commit": "462a103d730f9c66ee85e919f6f973977a4dcb87",
     "generation_proof_ui_commit": "9c5b299c3c8cf99a202e1cfc651484d51c406b9a",
     "generation_proof_ui_load_commit": "34f1ea9fe8f1a20cac8666807649dbb7e638a5ab",
+    "strict_generation_proof_commit": "fd768ffbd6536bfc8513c761bdaed26c01c1e775",
+    "strict_generation_proof_load_commit": "ab54934e56a5bda9f14ae22cde701e0e4e61ad66",
     "pattern_1_geometry_replication": "Independent replication of renderer v9 default 3/7/11 placement previously checked 385 body nodes and calculated 0 invalid overlaps and 0 clipping; source evidence only.",
-    "pattern_2_geometry_replication": "Current SC coaster renderer placement was independently recomputed from its exact radii/round counts and glyph footprints in this run; calculated 0 body overlaps before live browser execution. Source evidence only.",
+    "pattern_2_geometry_replication": "Current SC coaster renderer placement was independently recomputed from its exact radii/round counts and glyph footprints; calculated 0 body overlaps before live browser execution. Source evidence only.",
     "runtime_readiness_contract": "window.__CROCHET_GENERATOR_READINESS fail-closes if either supported construction engine API is absent or violates its fixed construction/count/closure/written-output contract. Layout is still validated on actual Generate because render proof must not be faked by an engine-only smoke test.",
-    "visible_generation_proof": "After Generate, Technical validation now surfaces exact live renderer evidence: family, body collisions, clipped symbols, construction PASS/FAIL and written PASS/FAIL; the same evidence is stored in window.__LAST_GENERATION_PROOF.",
-    "gmail_owner_directives": "Checked plainact@outlook.com first at ~16:00; no Crochet-specific owner email. Existing owner messages concern Chess Cloudflare and Plain Act LinkedIn.",
+    "visible_generation_proof": "After Generate, Technical validation surfaces exact live renderer evidence: family, body collisions, clipped symbols, construction PASS/FAIL and written PASS/FAIL. Construction PASS now comes from real family validation: SC Coaster requires generator validation + round-closure validation; lace requires generator validation + constructability audit. Evidence is stored in window.__LAST_GENERATION_PROOF.",
+    "gmail_owner_directives": "Checked plainact@outlook.com first at ~17:00; no Crochet-specific owner email. Existing owner messages concern Chess Cloudflare and Plain Act LinkedIn.",
     "production_verification": "Workers URL remains unavailable to the current web runtime; independent live PASS is unavailable.",
     "metrics": {
       "verified_generation_success_rate": null,
@@ -49,12 +51,12 @@
     "No new product surface beyond Generate Pattern before the two target families are live-proven.",
     "Pattern #1 remains fixed to 3/7/11; Pattern #2 remains fixed to four rounds until broader variants are separately proven.",
     "Runtime readiness proves construction contracts; chart/layout remains a separate fail-closed gate on Generate.",
-    "The product UI must display exact collision/clipping proof so live screenshots can distinguish source confidence from production evidence.",
+    "Visible construction PASS must never be hardcoded; it must derive from the active family's actual validation evidence.",
     "Do not weaken validation or claim 100% execution without live render plus physical/user execution evidence."
   ],
   "next_actions": [
-    "Production-browser generate Pattern #1 and read the new exact proof line: require body collisions 0, clipped symbols 0, construction PASS, written PASS, recognizable chart.",
-    "Production-browser generate Pattern #2 and read the new exact proof line: require body collisions 0, clipped symbols 0, construction PASS, written PASS, visible 6→12→18→24 joined-round chart.",
+    "Production-browser generate Pattern #1 and read the exact proof line: require body collisions 0, clipped symbols 0, construction PASS, written PASS, recognizable chart.",
+    "Production-browser generate Pattern #2 and read the exact proof line: require body collisions 0, clipped symbols 0, construction PASS, written PASS, visible 6→12→18→24 joined-round chart.",
     "If production differs from main, diagnose deployment/cache before changing crochet logic.",
     "If a live runtime reject appears, fix only the exact failing contract/layout pair.",
     "Keep both families BETA until a physical crocheter execution sample removes hidden ambiguity."
@@ -71,6 +73,7 @@
     {"at":"2026-08-18T13:00:00+03:00","result":"Removed unproven Pattern #1 parameter breadth from user UI.","commit":"d2f3b452e49344fe9933eedf35a5e77e38cd3079"},
     {"at":"2026-08-18T14:02:00+03:00","result":"Added browser-runtime two-family construction readiness contract covering exact fixed counts, starts/closures and compiled written output; loaded it on main. Live render proof remains blocked by Workers access from runtime.","commit":"40e726c21e6ef182b74fc81ca8c2e3e9a351630b"},
     {"at":"2026-08-18T15:00:00+03:00","result":"Removed ambiguous continuous-vs-joined wording from Pattern #2 written instructions.","commit":"462a103d730f9c66ee85e919f6f973977a4dcb87"},
-    {"at":"2026-08-18T16:00:00+03:00","result":"Added exact visible per-generation proof evidence to the product UI and independently recomputed current coaster renderer geometry at 0 source-level overlaps; live Workers PASS remains unproven.","commit":"34f1ea9fe8f1a20cac8666807649dbb7e638a5ab"}
+    {"at":"2026-08-18T16:00:00+03:00","result":"Added exact visible per-generation proof evidence to the product UI and independently recomputed current coaster renderer geometry at 0 source-level overlaps; live Workers PASS remains unproven.","commit":"34f1ea9fe8f1a20cac8666807649dbb7e638a5ab"},
+    {"at":"2026-08-18T17:00:00+03:00","result":"Removed hardcoded SC Coaster construction PASS from the visible proof layer; both families now require their actual construction validation evidence before the UI can show PASS.","commit":"ab54934e56a5bda9f14ae22cde701e0e4e61ad66"}
   ]
 }
