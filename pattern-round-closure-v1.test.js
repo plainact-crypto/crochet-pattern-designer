@@ -4,6 +4,8 @@ const V=global.CrochetRoundClosure;
 function n(id,type,round,o={}){return{id,type,round,...o}}
 const joined={roundPolicy:{1:'joined'},nodes:[n('a','single',1),n('b','single',1),n('j','slip',1,{role:'round-join',closesRound:true,anchor:'b',workedInto:'a'})]};
 assert.equal(V.validateRoundClosure(joined,{requirePolicy:true}).ok,true);
+const priorAnchorClosure={roundPolicy:{1:'joined',2:'joined'},nodes:[n('a','single',1),n('b','single',1),n('j1','slip',1,{closesRound:true,anchor:'b',workedInto:'a'}),n('c','chain',2,{anchor:'a'}),n('j2','slip',2,{closesRound:true,anchor:'c',workedInto:'a'})]};
+assert.equal(V.validateRoundClosure(priorAnchorClosure,{requirePolicy:true}).ok,true);
 const noJoin={roundPolicy:{1:'joined'},nodes:[n('a','single',1),n('b','single',1)]};
 assert.equal(V.validateRoundClosure(noJoin,{requirePolicy:true}).ok,false);
 const localJoinsAreNotRoundClosure={roundPolicy:{1:'joined'},nodes:[n('a','single',1),n('b','single',1),n('j1','slip',1,{role:'petal-join',anchor:'b',workedInto:'a'}),n('j2','slip',1,{role:'edge-join',anchor:'b',workedInto:'a'})]};
@@ -14,10 +16,10 @@ const spiral={roundPolicy:{1:'spiral'},nodes:[n('a','single',1),n('b','single',1
 assert.equal(V.validateRoundClosure(spiral,{requirePolicy:true}).ok,true);
 const badSpiral={roundPolicy:{1:'continuous'},nodes:[n('a','single',1),n('j','slip',1,{closesRound:true,anchor:'a',workedInto:'a'})]};
 assert.equal(V.validateRoundClosure(badSpiral,{requirePolicy:true}).ok,false);
-const cross={roundPolicy:{2:'joined'},nodes:[n('a','single',1),n('b','single',2),n('j','slip',2,{closesRound:true,anchor:'b',workedInto:'a'})]};
-assert.equal(V.validateRoundClosure(cross,{requirePolicy:true}).ok,false);
+const futureTarget={roundPolicy:{1:'joined',2:'joined'},nodes:[n('a','single',1),n('j','slip',1,{closesRound:true,anchor:'a',workedInto:'future'}),n('future','single',2),n('j2','slip',2,{closesRound:true,anchor:'future',workedInto:'future'})]};
+assert.equal(V.validateRoundClosure(futureTarget,{requirePolicy:true}).ok,false);
 const missingPolicy={nodes:[n('a','single',1)]};
 assert.equal(V.validateRoundClosure(missingPolicy).ok,true);
 assert.equal(V.validateRoundClosure(missingPolicy).policyComplete,false);
 assert.equal(V.validateRoundClosure(missingPolicy,{requirePolicy:true}).ok,false);
-console.log('pattern-round-closure-v1.1 tests PASS');
+console.log('pattern-round-closure-v1.2 tests PASS');
