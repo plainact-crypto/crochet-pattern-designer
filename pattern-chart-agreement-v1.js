@@ -17,9 +17,17 @@ function validate(g,w){
    if(!consumers.length)e.push(`${sp.id}: unconsumed chain space`);
   }
   for(const x of n.filter(x=>/join$/.test(x.role||''))){if(x.type!=='slip')e.push(`${x.id}: join is not slip stitch`);if(!x.anchor)e.push(`${x.id}: join missing anchor`);if(!x.workedInto)e.push(`${x.id}: join missing target`)}
+  const irModes=Object.fromEntries(Object.entries(g.roundPolicy||{}).map(([k,v])=>[Number(k),v]));
+  const writtenModes=w.facts.roundModes||{};
+  for(const r of [1,2,3,4,5,6,7,8]){if(!irModes[r])e.push(`round ${r}: missing Pattern IR round mode`);if(writtenModes[r]!==irModes[r])e.push(`round ${r}: written round mode mismatch`)}
+  const irClosures=n.filter(x=>x.closesRound===true).map(x=>({round:x.round,nodeId:x.id,type:x.type,workedInto:x.workedInto||null,anchor:x.anchor||null})).sort((a,b)=>a.round-b.round);
+  const writtenClosures=(w.facts.roundClosures||[]).map(x=>({round:x.round,nodeId:x.nodeId,type:x.type,workedInto:x.workedInto||null,anchor:x.anchor||null})).sort((a,b)=>a.round-b.round);
+  if(irClosures.length!==writtenClosures.length)e.push('written round closure count mismatch');
+  for(let i=0;i<Math.max(irClosures.length,writtenClosures.length);i++){const a=irClosures[i],b=writtenClosures[i];if(!a||!b)continue;if(a.round!==b.round||a.nodeId!==b.nodeId||a.type!==b.type||a.workedInto!==b.workedInto||a.anchor!==b.anchor)e.push(`round ${a.round||b.round}: written closing join mismatch`)}
+  for(const [r,mode] of Object.entries(irModes)){const count=irClosures.filter(x=>x.round===Number(r)).length;if(mode==='joined'&&count!==1)e.push(`round ${r}: expected one explicit closure`);if((mode==='continuous'||mode==='spiral')&&count!==0)e.push(`round ${r}: continuous round must not close`)}
   if(typeof window!=='undefined'&&Array.isArray(window.__LACE_LAYOUT_SNAPSHOT?.nodes)){const m=new Map(window.__LACE_LAYOUT_SNAPSHOT.nodes.map(x=>[x.id,x]));for(const x of n){const r=m.get(x.id);if(!r)e.push(`${x.id}: missing rendered node`);else if(r.type!==x.type||(r.workedInto||null)!==(x.workedInto||null))e.push(`${x.id}: rendered semantic mismatch`)}}
  }
- return{ok:!e.length,errors:[...new Set(e)],version:2}
+ return{ok:!e.length,errors:[...new Set(e)],version:3}
 }
 const api={validate};if(typeof module!=='undefined'&&module.exports)module.exports=api;if(typeof window!=='undefined')window.CrochetChartAgreement=api
 })();
