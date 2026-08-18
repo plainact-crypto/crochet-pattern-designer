@@ -15,6 +15,7 @@
     assertValidated(graph);
     if(graph.coreValidation?.ok!==true)throw new Error('INSTRUCTION_COMPILER_REQUIRES_PATTERN_CORE_PROOF');
     if(graph.spaceCoreValidation?.ok!==true)throw new Error('INSTRUCTION_COMPILER_REQUIRES_SPACE_REPEAT_PROOF');
+    if(graph.roundClosureValidation?.ok!==true)throw new Error('INSTRUCTION_COMPILER_REQUIRES_ROUND_CLOSURE_PROOF');
     if(graph.constructability?.ok!==true)throw new Error('INSTRUCTION_COMPILER_REQUIRES_CONSTRUCTABILITY_PROOF');
     if(graph.layoutValidation?.ok!==true)throw new Error('INSTRUCTION_COMPILER_REQUIRES_LAYOUT_PROOF');
   }
@@ -39,7 +40,9 @@
       `R8: sc in each R7 stitch${maxInc>1?`, working ${maxInc} sc in each marked increase stitch`:''}; join with sl st. [${counted(edge.length,'sc')}]`,'',
       `Parameters proven by Pattern IR: Inner DC ${p.innerDc} · Middle chain ${p.middleChain} · Outer chain ${p.outerChain}.`
     ];
-    return {version:1,terminology:'US',kind:graph.kind,lines,text:lines.join('\n'),facts:{petals:P,r1Count:r1,r8Count:edge.length,maxEdgeMultiplicity:maxInc}};
+    const roundModes=Object.fromEntries(Object.entries(graph.roundPolicy||{}).map(([k,v])=>[Number(k),v]));
+    const closures=nodes.filter(n=>n.closesRound===true).map(n=>({round:n.round,nodeId:n.id,type:n.type,workedInto:n.workedInto,anchor:n.anchor}));
+    return {version:1.1,terminology:'US',kind:graph.kind,lines,text:lines.join('\n'),facts:{petals:P,r1Count:r1,r8Count:edge.length,maxEdgeMultiplicity:maxInc,roundModes,roundClosures:closures}};
   }
   function compile(graph){assertValidated(graph);if(graph.kind==='lace-flower')return lace(graph);throw new Error(`INSTRUCTION_COMPILER_UNSUPPORTED_KIND:${graph.kind||'unknown'}`)}
   function compileSellable(graph){assertProven(graph);return compile(graph)}
